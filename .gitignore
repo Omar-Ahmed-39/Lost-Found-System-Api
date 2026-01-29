@@ -52,3 +52,24 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+# IDEs and user files
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+
+# Ignore build outputs for all projects under src/
+src/**/bin/
+src/**/obj/
+
+# ASP.NET Core / Web API specific
+src/**/Properties/launchSettings.json
+**/appsettings.*.json
+secrets.json
+secrets.*
+*.runtimeconfig.dev.json
+
+# Publish output
+publish/
