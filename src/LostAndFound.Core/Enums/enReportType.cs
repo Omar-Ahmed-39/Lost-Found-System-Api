@@ -1,6 +1,4 @@
-﻿namespace LostAndFound.Core.Enums;
-
-public enum enReportType
+﻿public enum enReportType
 {
     Lost = 1,
     Found = 2

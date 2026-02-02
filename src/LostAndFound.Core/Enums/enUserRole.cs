@@ -1,6 +1,4 @@
-﻿namespace LostAndFound.Core.Enums;
-
-public enum enUserRole
+﻿public enum enUserRole
 {
     User = 1,
     Admin = 2,

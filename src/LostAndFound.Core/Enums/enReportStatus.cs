@@ -1,6 +1,4 @@
-﻿namespace LostAndFound.Core.Enums;
-
-public enum enReportStatus
+﻿public enum enReportStatus
 {
     Open = 1,
     Matched = 2,
