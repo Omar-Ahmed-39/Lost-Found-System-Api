@@ -12,8 +12,7 @@ public class User
     public DateTime UpdatedAt { get; set; }
 
     // Navigation properties
-    public UserRole Role { get; }
-    public ICollection<Report> Reports { get; set; } = new List<Report>();
+    public ICollection<ItemReport> Reports { get; set; } = new List<ItemReport>();
     public ICollection<Claim> Claims { get; set; } = new List<Claim>();
     public ICollection<Handover> HandledBy { get; set; } = new List<Handover>();
     public ICollection<Handover> ReciverUser { get; set; } = new List<Handover>();
