@@ -26,5 +26,8 @@ public class ItemReport
     public User? User { get; set; }
     public Location? Location { get; set; }
     public Category? Category { get; set; }
-    public ICollection<ItemAttachment> Items { get; set; } = new List<ItemAttachment>();
+    public ICollection<ItemAttachment> Attachments { get; set; } = new List<ItemAttachment>();
+    public ICollection<Claim> Claims { get; set; } = new List<Claim>();
+    public ICollection<Match> LostId { get; set; } = new List<Match>();
+    public ICollection<Match> FoundId { get; set; } = new List<Match>();
 }
