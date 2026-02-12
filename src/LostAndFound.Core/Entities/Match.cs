@@ -1,10 +1,12 @@
-﻿namespace LostAndFound.Core.Entities;
+﻿using LostAndFound.Core.Enums;
+
+namespace LostAndFound.Core.Entities;
 
 public class Match
 {
     public int Id { get; set; }
     public float MatchScore { get; set; }
-    public string MatchStatus { get; set; } = string.Empty;
+    public enMatchStatus Status { get; set; }
     public DateTime MatchDate { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
