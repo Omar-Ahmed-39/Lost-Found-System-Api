@@ -1,4 +1,4 @@
-﻿public enum LocationType
+﻿public enum enLocationType
 {
     Classroom = 1,
     Laboratory = 2,
