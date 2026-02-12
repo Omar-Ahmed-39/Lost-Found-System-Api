@@ -21,5 +21,6 @@ public class Handover
     public Location Location { get; set; } = default!;
     public User ReciverUser { get; set; } = default!;
     public User GivenByUser { get; set; } = default!;
+    public Claim Claim { get; set; } = default!;
 
 }
