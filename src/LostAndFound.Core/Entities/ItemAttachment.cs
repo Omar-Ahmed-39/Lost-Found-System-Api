@@ -6,4 +6,7 @@ public class ItemAttachment
     public string FilePath { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+
+    // Navigation properties
+    public ICollection<ItemReport> Reports { get; set; } = new List<ItemReport>();
 }
