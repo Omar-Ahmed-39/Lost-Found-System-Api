@@ -8,11 +8,13 @@ public class Location
     [Required]
     [MaxLength(50)]
     public string LocationName { get; set; } = string.Empty;  
-    public LocationType LocationType { get; set; }
+    public enLocationType LocationType { get; set; }
 
     // Foreign key 
     public int DepartmentId { get; set; }
 
     // Navigation property
     public Department Department { get; set; } = default!;
+    public ICollection<Handover> Handovers { get; set; } = new List<Handover>();
+    public ICollection<ItemReport> Reports { get; set; } = new List<ItemReport>();
 }
