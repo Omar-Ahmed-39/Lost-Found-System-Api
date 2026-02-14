@@ -7,6 +7,9 @@ public class ItemAttachment
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 
+    // Foreign key
+    public int ReportId { get; set; }
+
     // Navigation properties
-    public ICollection<ItemReport> Reports { get; set; } = new List<ItemReport>();
+    public ItemReport Report { get; set; } = default!;
 }
