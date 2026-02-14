@@ -13,7 +13,7 @@ public class Match
 
     //Foreign key
     public int LostId { get; set; }
-    public int FounId { get; set; }
+    public int FoundId { get; set; }
     public int MatchedBy { get; set; }
 
     //Navigation Key
