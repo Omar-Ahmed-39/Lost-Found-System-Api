@@ -15,8 +15,7 @@ public class User
     public ICollection<ItemReport> Reports { get; set; } = new List<ItemReport>();
     public ICollection<Claim> Claims { get; set; } = new List<Claim>();
     public ICollection<Handover> HandledBy { get; set; } = new List<Handover>();
-    public ICollection<Handover> ReceivedHandovers { get; set; } = new List<Handover>();
+    public ICollection<Handover> ReciverUser { get; set; } = new List<Handover>();
     public ICollection<Match> Matches { get; set; } = new List<Match>();
     public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
-    public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 }
