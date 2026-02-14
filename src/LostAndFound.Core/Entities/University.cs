@@ -5,8 +5,6 @@ namespace LostAndFound.Core.Entities;
 public class University
 {
     public int Id { get; set; }
-    [Required]
-    [MaxLength(100)]
     public string UniversityName { get; set; } = string.Empty;
 
     // Navigation property 

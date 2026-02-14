@@ -5,8 +5,6 @@ namespace LostAndFound.Core.Entities;
 public class Location
 {
     public int Id { get; set; }
-    [Required]
-    [MaxLength(50)]
     public string LocationName { get; set; } = string.Empty;  
     public enLocationType LocationType { get; set; }
 

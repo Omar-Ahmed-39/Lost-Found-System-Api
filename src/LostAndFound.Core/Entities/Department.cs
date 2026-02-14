@@ -5,8 +5,6 @@ namespace LostAndFound.Core.Entities;
 public class Department
 {
     public int Id { get; set; }
-    [Required]
-    [MaxLength(50)]
     public string DepartmentName { get; set; } = string.Empty;
 
     // Foreign key to University
