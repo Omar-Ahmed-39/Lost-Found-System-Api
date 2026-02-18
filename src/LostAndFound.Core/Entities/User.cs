@@ -18,4 +18,5 @@ public class User
     public ICollection<Handover> ReceivedHandovers { get; set; } = new List<Handover>();
     public ICollection<Match> Matches { get; set; } = new List<Match>();
     public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+    public ICollection<Role> Roles { get; set; } = new List<Role>();
 }
