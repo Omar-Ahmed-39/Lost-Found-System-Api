@@ -7,11 +7,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\LostAndFound.Core\LostAndFound.Core.csproj" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.3" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Configurations\" />
+    <ProjectReference Include="..\LostAndFound.Core\LostAndFound.Core.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
