@@ -1,0 +1,31 @@
+﻿using LostAndFound.Core.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace LostAndFound.Infrastructure.Configurations;
+
+public class DepartmentConfiguration : IEntityTypeConfiguration<Department>
+{
+    public void Configure(EntityTypeBuilder<Department> builder)
+    {
+        builder.ToTable("Departments");
+
+        builder.HasKey(d => d.Id);
+
+        builder.Property(d => d.Name).IsRequired().HasMaxLength(150);
+
+        // Realationships
+
+        // Department -> University (Many-to-One)
+        builder.HasOne(d => d.University)
+            .WithMany(u => u.Departments)
+            .HasForeignKey(d => d.UniversityId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Department -> Locations (One-to-Many)
+        builder.HasMany(d => d.Locations)
+            .WithOne(l => l.Department)
+            .HasForeignKey(l => l.DepartmentId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+}
