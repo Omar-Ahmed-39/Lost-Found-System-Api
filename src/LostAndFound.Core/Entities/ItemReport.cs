@@ -22,8 +22,8 @@ public class ItemReport
     public int CategoryId { get; set; }
 
     //Navigation properties
-    public User? User { get; set; }
-    public Location? Location { get; set; }
+    public User User { get; set; } = default!;
+    public Location Location { get; set; } = default!;
     public Category? Category { get; set; }
     public ICollection<ItemAttachment> Attachments { get; set; } = new List<ItemAttachment>();
     public ICollection<Claim> Claims { get; set; } = new List<Claim>();
