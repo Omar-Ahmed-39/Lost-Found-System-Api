@@ -1,7 +1,4 @@
-﻿using LostAndFound.Core.Entities;
-using Microsoft.EntityFrameworkCore;
-
-namespace LostAndFound.Infrastructure;
+﻿namespace LostAndFound.Infrastructure;
 
 public class ApplicationDbContext : DbContext
 {

@@ -1,8 +1,4 @@
-﻿using LostAndFound.Core.Entities;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
-namespace LostAndFound.Infrastructure.Configurations;
+﻿namespace LostAndFound.Infrastructure.Configurations;
 
 public class UniversityConfiguration : IEntityTypeConfiguration<University>
 {
