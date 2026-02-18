@@ -1,6 +1,4 @@
-﻿using LostAndFound.Core.Enums;
-
-namespace LostAndFound.Core.Entities;
+﻿namespace LostAndFound.Core.Entities;
 
 public class Handover
 {

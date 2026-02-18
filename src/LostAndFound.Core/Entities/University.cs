@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace LostAndFound.Core.Entities;
+﻿namespace LostAndFound.Core.Entities;
 
 public class University
 {
