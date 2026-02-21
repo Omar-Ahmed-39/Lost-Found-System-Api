@@ -7,18 +7,18 @@ public class ApplicationDbContext : DbContext
     }
 
     // DbSet
-    public DbSet<User> Users { get; set; }
-    public DbSet<Role> Roles { get; set; }
-    public DbSet<ItemReport> ItemReports { get; set; }
-    public DbSet<Category> Categories { get; set; }
-    public DbSet<Location> Locations { get; set; }
-    public DbSet<Department> Departments { get; set; }
-    public DbSet<University> Universities { get; set; }
-    public DbSet<Claim> Claims { get; set; }
-    public DbSet<Handover> Handovers { get; set; }
-    public DbSet<Match> Matches { get; set; }
-    public DbSet<Notification> Notifications { get; set; }
-    public DbSet<ItemAttachment> ItemAttachments { get; set; }
+    public DbSet<User> Users { get; set; } = default!;
+    public DbSet<Role> Roles { get; set; } = default!;
+    public DbSet<ItemReport> ItemReports { get; set; } = default!;
+    public DbSet<Category> Categories { get; set; } = default!;
+    public DbSet<Location> Locations { get; set; } = default!;
+    public DbSet<Department> Departments { get; set; } = default!;
+    public DbSet<University> Universities { get; set; } = default!;
+    public DbSet<Claim> Claims { get; set; } = default!;
+    public DbSet<Handover> Handovers { get; set; } = default!;
+    public DbSet<Match> Matches { get; set; } = default!;
+    public DbSet<Notification> Notifications { get; set; } = default!;
+    public DbSet<ItemAttachment> ItemAttachments { get; set; } = default!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
