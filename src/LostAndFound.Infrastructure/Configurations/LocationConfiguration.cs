@@ -24,17 +24,5 @@ public class LocationConfiguration : IEntityTypeConfiguration<Location>
             .HasForeignKey(l => l.DepartmentId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // Location - Handover (One-to-Many)
-        builder.HasMany(l => l.Handovers)
-            .WithOne(h => h.Location)
-            .HasForeignKey(h => h.LocationId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        // Location - ItemReport (One-to-Many)
-        builder.HasMany(l => l.Reports)
-            .WithOne(r => r.Location)
-            .HasForeignKey(r => r.LocationId)
-            .OnDelete(DeleteBehavior.Cascade);
-
     }
 }
