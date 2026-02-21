@@ -11,13 +11,5 @@ public class UniversityConfiguration : IEntityTypeConfiguration<University>
         builder.Property(x => x.Name)
             .IsRequired()
             .HasMaxLength(200);
-
-        // Relationships
-
-        // University -> Departments (One-to-Many)
-        builder.HasMany(u => u.Departments)
-            .WithOne(d => d.University)
-            .HasForeignKey(d => d.UniversityId)
-            .OnDelete(DeleteBehavior.Restrict);
     }
 }
