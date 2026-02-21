@@ -25,13 +25,16 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasDefaultValue(true);
 
         builder.Property(u => u.LastLoginAt)
-            .IsRequired(false);
+            .IsRequired()
+            .HasDefaultValueSql("GETUTCDATE()");
 
         builder.Property(u => u.Created)
-            .IsRequired();
+             .IsRequired()
+       .HasDefaultValueSql("GETUTCDATE()");
 
         builder.Property(u => u.UpdatedAt)
-            .IsRequired(false);
+            .IsRequired()
+            .HasDefaultValueSql("GETUTCDATE()");
 
         // Relationships
 

@@ -1,12 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <Compile Remove="Repositories\**" />
-    <EmbeddedResource Remove="Repositories\**" />
-    <None Remove="Repositories\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.3" />
   </ItemGroup>
