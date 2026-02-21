@@ -3,7 +3,7 @@
 public class Match
 {
     public int Id { get; set; }
-    public float MatchScore { get; set; }
+    public double MatchScore { get; set; }
     public enMatchStatus Status { get; set; }
     public DateTime MatchDate { get; set; }
     public DateTime CreatedAt { get; set; }
