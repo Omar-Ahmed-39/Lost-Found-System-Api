@@ -10,7 +10,7 @@ public class DepartmentConfiguration : IEntityTypeConfiguration<Department>
 
         builder.Property(d => d.Name).IsRequired().HasMaxLength(150);
 
-        // Realationships
+        // Relationships
 
         // Department -> University (Many-to-One)
         builder.HasOne(d => d.University)
