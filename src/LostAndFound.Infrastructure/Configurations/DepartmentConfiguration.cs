@@ -17,11 +17,5 @@ public class DepartmentConfiguration : IEntityTypeConfiguration<Department>
             .WithMany(u => u.Departments)
             .HasForeignKey(d => d.UniversityId)
             .OnDelete(DeleteBehavior.Restrict);
-
-        // Department -> Locations (One-to-Many)
-        builder.HasMany(d => d.Locations)
-            .WithOne(l => l.Department)
-            .HasForeignKey(l => l.DepartmentId)
-            .OnDelete(DeleteBehavior.Cascade);
     }
 }
