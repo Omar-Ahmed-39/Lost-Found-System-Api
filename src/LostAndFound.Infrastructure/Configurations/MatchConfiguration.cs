@@ -9,8 +9,7 @@ public class MatchConfiguration : IEntityTypeConfiguration<Match>
         builder.HasKey(m => m.Id);
 
         builder.Property(m => m.MatchScore)
-            .IsRequired()
-            .HasColumnType("float");
+            .IsRequired();
 
         builder.Property(m => m.Status)
             .IsRequired()
