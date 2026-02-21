@@ -62,7 +62,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         // User - Handover (handled by) (One-to-many)
         builder.HasMany(u => u.HandledBy)
             .WithOne(h => h.GivenByUser)
-            .HasForeignKey(h => h.ReciverUserId)
+            .HasForeignKey(h => h.HandedByUserId)
             .OnDelete(DeleteBehavior.Restrict);
 
         // User - Handover (received) (One-to-many)
