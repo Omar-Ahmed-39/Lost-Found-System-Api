@@ -19,22 +19,21 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasIndex(u => u.Email).IsUnique();
 
         builder.Property(u => u.PasswordHash)
-            .IsRequired();
+            .IsRequired()
+            .HasMaxLength(500);
 
         builder.Property(u => u.IsActive)
             .HasDefaultValue(true);
 
         builder.Property(u => u.LastLoginAt)
-            .IsRequired()
-            .HasDefaultValueSql("GETUTCDATE()");
+            .IsRequired(false);
 
         builder.Property(u => u.Created)
              .IsRequired()
        .HasDefaultValueSql("GETUTCDATE()");
 
         builder.Property(u => u.UpdatedAt)
-            .IsRequired()
-            .HasDefaultValueSql("GETUTCDATE()");
+            .IsRequired(false);
 
         // Relationships
 
@@ -73,10 +72,5 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .WithOne(h => h.ReciverUser)
             .HasForeignKey(h => h.ReciverUserId)
             .OnDelete(DeleteBehavior.Restrict);
-
-        // User - Role (many-to-many)
-        builder.HasMany(u => u.Roles)
-            .WithMany(r => r.Users)
-            .UsingEntity(j => j.ToTable("UserRoles"));
     }
 }
