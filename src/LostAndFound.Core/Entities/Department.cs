@@ -1,11 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace LostAndFound.Core.Entities;
+﻿namespace LostAndFound.Core.Entities;
 
 public class Department
 {
     public int Id { get; set; }
-    public string DepartmentName { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
 
     // Foreign key to University
     public int UniversityId { get; set; }

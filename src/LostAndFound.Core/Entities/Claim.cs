@@ -1,15 +1,13 @@
-﻿using LostAndFound.Core.Enums;
-
-namespace LostAndFound.Core.Entities;
+﻿namespace LostAndFound.Core.Entities;
 
 public class Claim
 {
     public int Id { get; set; }
-    public DateTime ClaimDate { get; set; }
-    public enApprovalStatus approvalStatus { get; set; }
+    public DateTime ClaimDate { get; set; } = DateTime.UtcNow;
+    public enApprovalStatus ApprovalStatus { get; set; }
     public string Remarks { get; set; } = string.Empty;
-    public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? CancelledAt { get; set; }
 
     // Foreign Keys
