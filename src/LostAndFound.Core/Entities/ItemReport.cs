@@ -22,7 +22,7 @@ public class ItemReport
     //Navigation properties
     public User User { get; set; } = default!;
     public Location Location { get; set; } = default!;
-    public Category? Category { get; set; }
+    public Category Category { get; set; } = default!;
     public ICollection<ItemAttachment> Attachments { get; set; } = new List<ItemAttachment>();
     public ICollection<Claim> Claims { get; set; } = new List<Claim>();
     public ICollection<Match> LostMatches { get; set; } = new List<Match>();
