@@ -11,13 +11,13 @@ public class Handover
 
     // Foreign key
     public int LocationId { get; set; }
-    public int ReciverUserId { get; set; }
+    public int ReceiverUserId { get; set; }
     public int HandedByUserId { get; set; }
     public int ClaimId { get; set; }
 
     // Navigation properties
     public Location Location { get; set; } = default!;
-    public User ReciverUser { get; set; } = default!;
+    public User ReceiverUser { get; set; } = default!;
     public User GivenByUser { get; set; } = default!;
     public Claim Claim { get; set; } = default!;
 
