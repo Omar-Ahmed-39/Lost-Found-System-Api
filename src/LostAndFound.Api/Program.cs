@@ -1,3 +1,4 @@
+using LostAndFound.Core;
 using LostAndFound.Infrastructure;
 using LostAndFound.Infrastructure.Interceptors;
 using Microsoft.EntityFrameworkCore;
