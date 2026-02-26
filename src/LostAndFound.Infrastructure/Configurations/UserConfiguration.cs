@@ -29,48 +29,10 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .IsRequired(false);
 
         builder.Property(u => u.Created)
-             .IsRequired()
-       .HasDefaultValueSql("GETUTCDATE()");
+            .IsRequired();
 
         builder.Property(u => u.UpdatedAt)
             .IsRequired(false);
 
-        // Relationships
-
-        // User - ItemReport (One-to-many)
-        builder.HasMany(u => u.Reports)
-            .WithOne(r => r.User)
-            .HasForeignKey(r => r.UserId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        // User - Claim (One-to-many)
-        builder.HasMany(u => u.Claims)
-            .WithOne(c => c.User)
-            .HasForeignKey(c => c.UserId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        // User - Notification (One-to-many)
-        builder.HasMany(u => u.Notifications)
-            .WithOne(n => n.User)
-            .HasForeignKey(n => n.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        // User - MatchByUser (One-to-many)
-        builder.HasMany(u => u.Matches)
-            .WithOne(m => m.MatchedByUser)
-            .HasForeignKey(m => m.MatchedBy)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        // User - Handover (handled by) (One-to-many)
-        builder.HasMany(u => u.HandledBy)
-            .WithOne(h => h.GivenByUser)
-            .HasForeignKey(h => h.HandedByUserId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        // User - Handover (received) (One-to-many)
-        builder.HasMany(u => u.ReceivedHandovers)
-            .WithOne(h => h.ReciverUser)
-            .HasForeignKey(h => h.ReciverUserId)
-            .OnDelete(DeleteBehavior.Restrict);
     }
 }

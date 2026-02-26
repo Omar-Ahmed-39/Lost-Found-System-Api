@@ -33,10 +33,10 @@ public class HandoverConfiguration : IEntityTypeConfiguration<Handover>
             .HasForeignKey(h => h.LocationId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // Handover -> Receiver User (Receiver) (Many-to-One)
-        builder.HasOne(h => h.ReciverUser)
+        // Handover -> Receiver User (Many-to-One)
+        builder.HasOne(h => h.ReceiverUser)
             .WithMany(u => u.ReceivedHandovers)
-            .HasForeignKey(h => h.ReciverUserId)
+            .HasForeignKey(h => h.ReceiverUserId)
             .OnDelete(DeleteBehavior.Restrict);
 
         // Handover -> Given By User (Many-to-One)
