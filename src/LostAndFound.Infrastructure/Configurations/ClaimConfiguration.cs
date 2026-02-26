@@ -9,7 +9,7 @@ public class ClaimConfiguration : IEntityTypeConfiguration<Claim>
         builder.HasKey(x => x.Id);
 
         builder.Property(a => a.ApprovalStatus)
-            .HasConversion<int>();
+            .HasConversion<string>();
 
         builder.Property(a => a.Remarks)
             .HasMaxLength(300);

@@ -10,7 +10,7 @@ public class HandoverConfiguration : IEntityTypeConfiguration<Handover>
 
         builder.Property(x => x.IdType)
             .IsRequired()
-            .HasConversion<int>();
+            .HasConversion<string>();
 
         builder.Property(x => x.IdNumber)
             .IsRequired()
