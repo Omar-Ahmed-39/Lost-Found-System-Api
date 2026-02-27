@@ -3,7 +3,8 @@
 public enum enApprovalStatus
 {
     Pending = 1,
-    Approved = 2,
-    Rejected = 3,
-    Cancelled = 4
+    Approved = 2,     // Selected candidate
+    Completed = 3,    // Handover done
+    Rejected = 4,
+    Cancelled = 5
 }
