@@ -1,10 +1,12 @@
 using LostAndFound.Core.Entities;
 namespace LostAndFound.Core.Interfaces;
 
-public interface IUnitOfWork
+public interface IUnitOfWork : IDisposable
 {
-    IGenericRepository<Location> Location { get; }
-    IGenericRepository<Category> Category { get; }
-    IUserRepository User { get; }
+    IGenericRepository<Location> Locations { get; }
+    IGenericRepository<Category> Categories { get; }
+    IItemReportRepository ItemReports { get; }
+    IMatchRepository Matches { get; }
+    IUserRepository Users { get; }
     Task<int> SaveAsync();
 }
