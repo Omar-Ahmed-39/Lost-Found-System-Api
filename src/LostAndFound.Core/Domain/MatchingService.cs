@@ -15,13 +15,13 @@ public class MatchingService : IMatchingService
 
     public async Task ProcessMatchesForRepoertAsync(int newReportId)
     {
-        var report = await _unitOfWork.ItemReport.GetAsync(x => x.Id == newReportId);
+        var report = await _unitOfWork.ItemReports.GetAsync(x => x.Id == newReportId);
         if (report == null) return;
 
         // Determine the target report type to match against
         var targetType = report.ReportType == enReportType.Lost ? enReportType.Found : enReportType.Lost;
 
-        var candidates = await _unitOfWork.ItemReport.GetAllAsync(
+        var candidates = await _unitOfWork.ItemReports.GetAllAsync(
             predicate: t => t.ReportType == targetType
                         && t.CategoryId == report.CategoryId
                         && t.StatusType == enStatusType.Open,
@@ -50,7 +50,7 @@ public class MatchingService : IMatchingService
                 .ToList();
 
             if (topMatches.Any())
-                await _unitOfWork.Match.AddRangeAsync(topMatches);
+                await _unitOfWork.Matches.AddRangeAsync(topMatches);
             await _unitOfWork.SaveAsync();
         }
     }
