@@ -22,13 +22,13 @@ public class ItemReportConfiguration : IEntityTypeConfiguration<ItemReport>
             .HasMaxLength(500);
 
         builder.Property(x => x.ReportType)
-            .HasConversion<int>();
+            .HasConversion<string>();
 
         builder.Property(x => x.ConditionType)
-            .HasConversion<int>();
+            .HasConversion<string>();
 
         builder.Property(x => x.StatusType)
-            .HasConversion<int>();
+            .HasConversion<string>();
 
         // Relationships
 
