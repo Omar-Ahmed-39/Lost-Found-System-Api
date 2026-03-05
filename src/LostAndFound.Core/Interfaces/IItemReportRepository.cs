@@ -6,10 +6,10 @@ namespace LostAndFound.Core.Interfaces;
 public interface IItemReportRepository : IGenericRepository<ItemReport>
 {
     Task<ItemReport> CreateAsync(ItemReport report);
-    Task<ItemReport> UpdateAsync(ItemReport Report, int userId, bool isAdmin);
-    Task<ItemReport> DeleteAsync(int Report, int userId, bool isAdmin);
-    Task<ItemReport> CancelAsync(int Report, int userId, bool isAdmin);
-    Task<ItemReport?> GetByIdasync(int reportId);
+    Task<bool> UpdateAsync(ItemReport report, int userId, bool isAdmin);
+    Task<bool> DeleteAsync(int reportId, int userId, bool isAdmin);
+    Task<bool> CancelAsync(int reportId, int userId, bool isAdmin);
+    Task<ItemReport?> GetByIdAsync(int reportId);
     Task<IEnumerable<ItemReport>> GetItemReportsAsync();
     Task<IEnumerable<ItemReport>> FilterAsync(ItemReportFilter filter);
 }
