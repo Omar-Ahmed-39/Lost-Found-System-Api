@@ -7,7 +7,8 @@ public enum enStatusType
     Matched = 3,    
     Approved = 4,   
     Rejected = 5,   
-    Returned = 6,   
-    Closed = 7      
+    Returned = 6,
+    Canceled = 7,
+    Closed = 8    
 }
 
