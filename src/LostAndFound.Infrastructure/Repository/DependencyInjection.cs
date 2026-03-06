@@ -18,10 +18,8 @@ public static class DependencyInjection
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
-        // ── Unit of Work ─────────────────────────────────────────────────────
-        services.AddScoped<IUnitOfWork, UnitOfWork>();
-
-        // ── ASP.NET Core Identity ─────────────────────────────────────────────
+        // ── Unit of Work & Repositories ───────────────────────────────────────
+        services.AddScoped<IUnitOfWork, UnitOfWork>();        // ── ASP.NET Core Identity ─────────────────────────────────────────────
         services.AddIdentity<User, Role>(options =>
         {
             options.Password.RequireDigit = true;
