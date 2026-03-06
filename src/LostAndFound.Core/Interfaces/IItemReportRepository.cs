@@ -10,6 +10,6 @@ public interface IItemReportRepository : IGenericRepository<ItemReport>
     Task<bool> DeleteAsync(int reportId, int userId, bool isAdmin);
     Task<bool> CancelAsync(int reportId, int userId, bool isAdmin);
     Task<ItemReport?> GetByIdAsync(int reportId);
-    Task<IEnumerable<ItemReport>> GetItemReportsAsync();
+    Task<IEnumerable<ItemReport>> GetUserReportsAsync(int userId);
     Task<IEnumerable<ItemReport>> FilterAsync(ItemReportFilter filter);
 }
