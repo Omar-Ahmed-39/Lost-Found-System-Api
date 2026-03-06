@@ -34,14 +34,9 @@ public class MatchingService : IMatchingService
             var matchScore = CalculateSimilarityScore(report, candidate);
             if (matchScore > 30.0f) // Only consider matches with a positive score
             {
-                potentialMatches.Add(new Match
-                {
-                    LostId = report.ReportType == enReportType.Lost ? report.Id : candidate.Id,
-                    FoundId = report.ReportType == enReportType.Found ? report.Id : candidate.Id,
-                    MatchScore = matchScore,
-                    Status = enMatchStatus.Pending,
-                    MatchDate = DateTime.UtcNow
-                });
+                var lostId  = report.ReportType == enReportType.Lost  ? report.Id : candidate.Id;
+                var foundId = report.ReportType == enReportType.Found ? report.Id : candidate.Id;
+                potentialMatches.Add(Match.Create(lostId, foundId, matchScore, matchedBy: 0));
             }
 
             var topMatches = potentialMatches
