@@ -17,12 +17,12 @@ public class JwtProvider : IJwtProvider
     }
     public string GenerateToken(User user, IList<string> roles)
     {
-        var claims = new List<System.Security.Claims.Claim>
+        var claims = new List<Claim>
         {
-            new System.Security.Claims.Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new System.Security.Claims.Claim(JwtRegisteredClaimNames.Email, user.Email),
-            new System.Security.Claims.Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()) ,
-            new System.Security.Claims.Claim("Name",user.Name ?? string.Empty)
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new Claim(JwtRegisteredClaimNames.Email, user.Email),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()) ,
+            new Claim("Name",user.Name ?? string.Empty)
         };
 
         if (roles != null)
