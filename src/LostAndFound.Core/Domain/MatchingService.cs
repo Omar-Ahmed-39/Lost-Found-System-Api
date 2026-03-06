@@ -13,7 +13,7 @@ public class MatchingService : IMatchingService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task ProcessMatchesForRepoertAsync(int newReportId)
+    public async Task ProcessMatchesForReportAsync(int newReportId)
     {
         var report = await _unitOfWork.ItemReports.GetAsync(x => x.Id == newReportId);
         if (report == null) return;
