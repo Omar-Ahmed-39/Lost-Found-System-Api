@@ -16,9 +16,6 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
             .IsRequired()
             .HasMaxLength(500);
 
-        builder.Property(n => n.SentAt)
-            .IsRequired();
-
         // Relationship 
 
         // Notification -> User (Many-to-One)
