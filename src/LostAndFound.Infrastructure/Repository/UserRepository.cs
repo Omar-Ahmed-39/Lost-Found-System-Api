@@ -17,4 +17,15 @@ public class UserRepository : GenericRepository<User>, IUserRepository
     {
         return !await _context.Users.AnyAsync(u => u.Email == email);
     }
+
+    public async Task<IList<string>> GetRolesAsync(int userId)
+    {
+        var user = await _context.Users
+            .AsNoTracking()
+            .Include(u => u.Roles)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+
+        return user?.Roles.Select(r => r.Name ?? string.Empty).ToList()
+               ?? new List<string>();
+    }
 }

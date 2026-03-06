@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using LostAndFound.Core.Interfaces;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
@@ -10,39 +10,40 @@ namespace LostAndFound.Infrastructure.Repository;
 
 public class JwtProvider : IJwtProvider
 {
-    private readonly IConfiguration _configuration;
-    public JwtProvider(IConfiguration configuration)
+    private readonly JwtOptions _options;
+
+    public JwtProvider(IOptions<JwtOptions> options)
     {
-        _configuration = configuration;
+        _options = options.Value;
     }
+
     public string GenerateToken(User user, IList<string> roles)
     {
         var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, user.Email),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()) ,
-            new Claim("Name",user.Name ?? string.Empty)
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim("Name", user.Name ?? string.Empty)
         };
 
         if (roles != null)
         {
             foreach (var role in roles)
-            {
-                claims.Add(new System.Security.Claims.Claim(ClaimTypes.Role, role));
-            }
+                claims.Add(new Claim(ClaimTypes.Role, role));
         }
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtOptions:SecretKey"] ?? string.Empty));
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SecretKey));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
-            issuer: _configuration["JwtOptions:Issuer"],
-            audience: _configuration["JwtOptions:Audience"],
+            issuer: _options.Issuer,
+            audience: _options.Audience,
             claims: claims,
-            expires: DateTime.UtcNow.AddHours(2),
+            expires: DateTime.UtcNow.AddHours(_options.ExpiryHours),
             signingCredentials: creds
         );
+
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }

@@ -6,32 +6,35 @@ public class IdentityAuthService : IAuthenticationService
 {
     private readonly UserManager<User> _userManager;
     private readonly IJwtProvider _jwtProvider;
+
     public IdentityAuthService(UserManager<User> userManager, IJwtProvider jwtProvider)
     {
         _userManager = userManager;
         _jwtProvider = jwtProvider;
     }
-    public async Task<string> LoginAsync(string email, string passwordOrFirebaseToken)
+
+    public async Task<string> LoginAsync(string email, string credential)
     {
         var user = await _userManager.FindByEmailAsync(email);
         if (user == null)
             throw new UnauthorizedAccessException("Invalid email or password.");
 
-        var isPasswordValid = await _userManager.CheckPasswordAsync(user, passwordOrFirebaseToken);
+        var isPasswordValid = await _userManager.CheckPasswordAsync(user, credential);
         if (!isPasswordValid)
             throw new UnauthorizedAccessException("Invalid email or password.");
 
-        var roles = await _userManager.GetRolesAsync(user);
+        // Guard: deactivated accounts must not receive new tokens.
+        if (!user.IsActive)
+            throw new UnauthorizedAccessException("This account has been deactivated. Please contact support.");
 
+        var roles = await _userManager.GetRolesAsync(user);
         return _jwtProvider.GenerateToken(user, roles);
     }
 
     public Task LogoutAsync()
     {
-        // With stateless JWT authentication, logout is typically handled on the client side
-        // by removing the token from local storage or cookies.
-        // If you implement a token blacklist or refresh tokens in the future,
-        // you would handle the revocation logic here.
+        // Logout is stateless with JWT. To enforce immediate invalidation in the future,
+        // implement a token blacklist or refresh-token revocation here.
         return Task.CompletedTask;
     }
 

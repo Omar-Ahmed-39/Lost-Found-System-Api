@@ -7,6 +7,7 @@ public interface IUnitOfWork : IDisposable
     IGenericRepository<Category> Categories { get; }
     IGenericRepository<University> Universities { get; }
     IGenericRepository<Department> Departments { get; }
+    IGenericRepository<Notification> Notifications { get; }
     IItemReportRepository ItemReports { get; }
     IMatchRepository Matches { get; }
     IUserRepository Users { get; }

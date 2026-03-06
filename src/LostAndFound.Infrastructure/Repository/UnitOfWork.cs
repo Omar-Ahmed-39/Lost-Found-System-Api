@@ -1,6 +1,6 @@
 using LostAndFound.Infrastructure;
 
-namespace LostAndFound.Core.Interfaces
+namespace LostAndFound.Infrastructure.Repository
 {
     public class UnitOfWork : IUnitOfWork
     {
