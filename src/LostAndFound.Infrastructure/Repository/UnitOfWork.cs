@@ -8,7 +8,7 @@ namespace LostAndFound.Infrastructure.Repository
         public UnitOfWork(ApplicationDbContext context, IUserRepository userRepository,
                 IMatchRepository matchRepository, IItemReportRepository itemReportRepository,
                 IGenericRepository<Location> locationRepository, IGenericRepository<Category> categoryRepository,
-                IGenericRepository<Notification> notificationRepository, IGenericRepository<University> universityRepository, 
+                INotificationRepository notificationRepository, IGenericRepository<University> universityRepository, 
                 IGenericRepository<Department> departmentRepository
         )
         {
@@ -25,7 +25,7 @@ namespace LostAndFound.Infrastructure.Repository
 
         public IGenericRepository<Location> Locations { get; }
         public IGenericRepository<Category> Categories { get; }
-        public IGenericRepository<Notification> Notifications { get; }
+        public INotificationRepository Notifications { get; }
         public IGenericRepository<University> Universities { get; }
         public IGenericRepository<Department> Departments { get; }
         public IItemReportRepository ItemReports { get; }

@@ -1,6 +1,5 @@
 using LostAndFound.Core.Entities;
 using LostAndFound.Core.Interfaces;
-using Microsoft.VisualBasic;
 
 namespace LostAndFound.Core.Domain;
 
@@ -38,14 +37,32 @@ public class MatchingService : IMatchingService
                 var foundId = report.ReportType == enReportType.Found ? report.Id : candidate.Id;
                 potentialMatches.Add(Match.Create(lostId, foundId, matchScore, matchedBy: 0));
             }
+        }
 
-            var topMatches = potentialMatches
-                .OrderByDescending(m => m.MatchScore)
-                .Take(5)
-                .ToList();
+        var topMatches = potentialMatches
+            .OrderByDescending(m => m.MatchScore)
+            .Take(5)
+            .ToList();
 
-            if (topMatches.Any())
-                await _unitOfWork.Matches.AddRangeAsync(topMatches);
+        if (topMatches.Any())
+        {
+            await _unitOfWork.Matches.AddRangeAsync(topMatches);
+            await _unitOfWork.SaveAsync();
+
+            // Notify the owner of the triggering report and each matched candidate owner
+            var notifiedUsers = new HashSet<int>();
+            notifiedUsers.Add(report.UserId);
+            foreach (var candidate in candidates)
+                notifiedUsers.Add(candidate.UserId);
+
+            var notifications = notifiedUsers.Select(uid => new Notification
+            {
+                UserId = uid,
+                Title = "Potential Match Found",
+                Message = "A potential match was found for your item!",
+            }).ToList();
+
+            await _unitOfWork.Notifications.AddRangeAsync(notifications);
             await _unitOfWork.SaveAsync();
         }
     }
