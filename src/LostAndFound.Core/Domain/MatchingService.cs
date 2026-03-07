@@ -1,6 +1,5 @@
 using LostAndFound.Core.Entities;
 using LostAndFound.Core.Interfaces;
-using Microsoft.VisualBasic;
 
 namespace LostAndFound.Core.Domain;
 
@@ -13,7 +12,7 @@ public class MatchingService : IMatchingService
         _unitOfWork = unitOfWork;
     }
 
-    public async Task ProcessMatchesForRepoertAsync(int newReportId)
+    public async Task ProcessMatchesForReportAsync(int newReportId)
     {
         var report = await _unitOfWork.ItemReports.GetAsync(x => x.Id == newReportId);
         if (report == null) return;
@@ -34,23 +33,36 @@ public class MatchingService : IMatchingService
             var matchScore = CalculateSimilarityScore(report, candidate);
             if (matchScore > 30.0f) // Only consider matches with a positive score
             {
-                potentialMatches.Add(new Match
-                {
-                    LostId = report.ReportType == enReportType.Lost ? report.Id : candidate.Id,
-                    FoundId = report.ReportType == enReportType.Found ? report.Id : candidate.Id,
-                    MatchScore = matchScore,
-                    Status = enMatchStatus.Pending,
-                    MatchDate = DateTime.UtcNow
-                });
+                var lostId  = report.ReportType == enReportType.Lost  ? report.Id : candidate.Id;
+                var foundId = report.ReportType == enReportType.Found ? report.Id : candidate.Id;
+                potentialMatches.Add(Match.Create(lostId, foundId, matchScore, matchedBy: 0));
             }
+        }
 
-            var topMatches = potentialMatches
-                .OrderByDescending(m => m.MatchScore)
-                .Take(5)
-                .ToList();
+        var topMatches = potentialMatches
+            .OrderByDescending(m => m.MatchScore)
+            .Take(5)
+            .ToList();
 
-            if (topMatches.Any())
-                await _unitOfWork.Matches.AddRangeAsync(topMatches);
+        if (topMatches.Any())
+        {
+            await _unitOfWork.Matches.AddRangeAsync(topMatches);
+            await _unitOfWork.SaveAsync();
+
+            // Notify the owner of the triggering report and each matched candidate owner
+            var notifiedUsers = new HashSet<int>();
+            notifiedUsers.Add(report.UserId);
+            foreach (var candidate in candidates)
+                notifiedUsers.Add(candidate.UserId);
+
+            var notifications = notifiedUsers.Select(uid => new Notification
+            {
+                UserId = uid,
+                Title = "Potential Match Found",
+                Message = "A potential match was found for your item!",
+            }).ToList();
+
+            await _unitOfWork.Notifications.AddRangeAsync(notifications);
             await _unitOfWork.SaveAsync();
         }
     }
