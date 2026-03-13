@@ -13,6 +13,9 @@ public static class ApiRoutes
     }
     public static class Matches
     {
+        public const string GetAll = Base + "/matches";
+        public const string GetPending = Base + "/matches/Pending";
+        public const string GetById = Base + "/matches/{matchId}";
         public const string Verify = Base + "/matches/verify";
     }
     public static class Notifications
