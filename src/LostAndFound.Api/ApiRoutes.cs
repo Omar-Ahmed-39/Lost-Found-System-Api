@@ -20,7 +20,7 @@ public static class ApiRoutes
     }
     public static class Notifications
     {
-        public const string GetUserNotifications = Base + "/notifications/user/{userId}";
-        public const string MarkAsRead = Base + "/notifications/{notificationId}/read";
+        public const string GetUserNotifications = Base + "/notifications/me";
+        public const string MarkAsRead = Base + "/notifications/{id}/read";
     }
 }
