@@ -18,7 +18,7 @@ public class FirebaseAuthService : IAuthenticationService
         _logger = logger;
     }
 
-    public async Task<string> LoginAsync(string email, string credential)
+    public async Task<(string Token, string RefreshToken)?> LoginAsync(string email, string credential, string? fcmToken)
     {
         FirebaseToken decodedToken;
 
@@ -57,6 +57,8 @@ public class FirebaseAuthService : IAuthenticationService
         try
         {
             user = await _unitOfWork.Users.GetAsync(u => u.Email == email, true);
+            var shouldSave = false;
+
             if (user is null)
             {
                 user = new User
@@ -65,9 +67,20 @@ public class FirebaseAuthService : IAuthenticationService
                     Name = decodedToken.Claims.TryGetValue("name", out var nameClaim)
                            ? nameClaim?.ToString() ?? string.Empty
                            : string.Empty,
-                    IsActive = true
+                    IsActive = true,
+                    FcmToken = fcmToken
                 };
                 await _unitOfWork.Users.AddAsync(user);
+                shouldSave = true;
+            }
+            else if (fcmToken != null && user.FcmToken != fcmToken)
+            {
+                user.FcmToken = fcmToken;
+                shouldSave = true;
+            }
+
+            if (shouldSave)
+            {
                 await _unitOfWork.SaveAsync();
             }
         }
@@ -77,6 +90,12 @@ public class FirebaseAuthService : IAuthenticationService
             _logger.LogWarning("Race condition on first-login sync for email: {Email}. Re-fetching user.", email);
             user = await _unitOfWork.Users.GetAsync(u => u.Email == email, true)
                    ?? throw new UnauthorizedAccessException("Could not resolve user after concurrent insert conflict.");
+
+            if (fcmToken != null && user.FcmToken != fcmToken)
+            {
+                user.FcmToken = fcmToken;
+                await _unitOfWork.SaveAsync();
+            }
         }
 
         // 4. Guard: deactivated users must not receive new tokens, even with a valid Firebase token.
@@ -88,25 +107,37 @@ public class FirebaseAuthService : IAuthenticationService
         if (roles.Count == 0)
             roles = new List<string> { "User" };
 
-        return _jwtProvider.GenerateToken(user, roles);
+        var token = _jwtProvider.GenerateToken(user, roles);
+        return (token, "firebase-refresh-token-managed-by-client");
     }
 
-    public Task LogoutAsync()
+    public async Task<bool> RevokeTokenAndLogoutAsync(int userId)
     {
-        // Logout for Firebase-authenticated users is handled on the client side
-        // by calling FirebaseAuth.signOut() in the client SDK.
-        // If server-side token revocation is needed in the future, call
-        // FirebaseAuth.DefaultInstance.RevokeRefreshTokensAsync(uid) here.
-        return Task.CompletedTask;
+        var user = await _unitOfWork.Users.GetAsync(u => u.Id == userId, true);
+        if (user != null)
+        {
+            user.FcmToken = null;
+            await _unitOfWork.SaveAsync();
+            return true;
+        }
+        return false;
     }
 
     public Task<bool> RegisterAsync(User user, string password)
     {
         // Firebase manages registration on the client side via the Firebase client SDK.
-        // Pre-provisioning a DB record is not needed here — it happens automatically
-        // on the user's first successful LoginAsync call (the sync block above).
         throw new NotSupportedException(
             "Registration is managed by the Firebase client SDK. " +
             "The local user record is created automatically on the first LoginAsync call.");
+    }
+
+    public Task<(string Token, string RefreshToken)?> RefreshTokenAsync(string token, string refreshToken)
+    {
+        throw new NotSupportedException("Refresh tokens are handled by the Firebase client SDK.");
+    }
+
+    public Task<bool> ChangePasswordAsync(int userId, string currentPassword, string newPassword)
+    {
+        throw new NotSupportedException("Password changes are managed by the Firebase client SDK.");
     }
 }

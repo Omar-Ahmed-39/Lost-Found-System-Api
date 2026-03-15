@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using LostAndFound.Core.Interfaces;
+using LostAndFound.Infrastructure.Interceptors;
 
 namespace LostAndFound.Infrastructure.Repository;
 
@@ -15,8 +16,12 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
         // ── Database ─────────────────────────────────────────────────────────
-        services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+        services.AddSingleton<AuditInterceptor>();
+        services.AddDbContext<ApplicationDbContext>((sp, options) =>
+        {
+            options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
+            options.AddInterceptors(sp.GetRequiredService<AuditInterceptor>());
+        });
 
         // ── Unit of Work & Repositories ───────────────────────────────────────
         services.AddScoped<IUnitOfWork, UnitOfWork>();        // ── ASP.NET Core Identity ─────────────────────────────────────────────

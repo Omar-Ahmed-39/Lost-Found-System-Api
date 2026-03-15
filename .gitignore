@@ -64,6 +64,10 @@ nunit-*.xml
 src/**/bin/
 src/**/obj/
 
+# Handle Windows-style folder names accidentally created on Linux
+src/**/bin\\*/
+src/**/obj\\*/
+
 # ASP.NET Core / Web API specific
 src/**/Properties/launchSettings.json
 **/appsettings.*.json

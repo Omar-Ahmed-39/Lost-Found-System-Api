@@ -4,7 +4,9 @@ namespace LostAndFound.Core.Interfaces;
 
 public interface IAuthenticationService
 {
-    Task<string> LoginAsync(string email, string credential);
+    Task<(string Token, string RefreshToken)?> LoginAsync(string email, string credential, string? fcmToken);
     Task<bool> RegisterAsync(User user, string password);
-    Task LogoutAsync();
+    Task<(string Token, string RefreshToken)?> RefreshTokenAsync(string token, string refreshToken);
+    Task<bool> RevokeTokenAndLogoutAsync(int userId);
+    Task<bool> ChangePasswordAsync(int userId, string currentPassword, string newPassword);
 }
