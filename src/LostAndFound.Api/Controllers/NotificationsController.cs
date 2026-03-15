@@ -13,6 +13,7 @@ public class NotificationsController : BaseController
         _unitOfWork = unitOfWork;
     }
 
+    [HttpGet(ApiRoutes.Notifications.GetUserNotifications)]
     public async Task<IActionResult> GetMyNotifications()
     {
         var currentUserId = GetUserId();
@@ -21,6 +22,7 @@ public class NotificationsController : BaseController
         return Ok(notifications);
     }
 
+    [HttpPut(ApiRoutes.Notifications.MarkAsRead)]
     public async Task<IActionResult> MarkAsRead([FromRoute] int id)
     {
         var isFound = await _unitOfWork.Notifications.MarkAsReadAsync(id, GetUserId());
