@@ -31,7 +31,6 @@ public class NotificationRepository : GenericRepository<Notification>, INotifica
             return false;
 
         notification.IsRead = true;
-        await _context.SaveChangesAsync();
         return true;
     }
 }
