@@ -23,4 +23,20 @@ public static class ApiRoutes
         public const string GetUserNotifications = Base + "/notifications/me";
         public const string MarkAsRead = Base + "/notifications/{id}/read";
     }
+    public static class Locations
+    {
+        public const string GetAll = Base + "/admin/locations";
+        public const string GetById = Base + "/admin/locations/{id}";
+        public const string Create = Base + "/admin/locations";
+        public const string Update = Base + "/admin/locations/{id}";
+        public const string Delete = Base + "/admin/locations/{id}";
+    }
+    public static class Categories
+    {
+        public const string GetAll = Base + "/admin/categories";
+        public const string GetById = Base + "/admin/categories/{id}";
+        public const string Create = Base + "/admin/categories";
+        public const string Update = Base + "/admin/categories/{id}";
+        public const string Delete = Base + "/admin/categories/{id}";
+    }
 }
