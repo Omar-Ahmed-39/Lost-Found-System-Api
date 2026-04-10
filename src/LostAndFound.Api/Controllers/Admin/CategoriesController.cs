@@ -75,7 +75,6 @@ public class CategoriesController : BaseController
 
         category.Name = request.Name;
 
-        _unitOfWork.Categories.Update(category);
         await _unitOfWork.SaveAsync();
 
         var response = new CategoryResponseDto

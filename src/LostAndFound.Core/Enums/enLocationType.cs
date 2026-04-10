@@ -1,4 +1,6 @@
-﻿public enum enLocationType
+﻿namespace LostAndFound.Core.Enums;
+
+public enum enLocationType
 {
     Classroom = 1,
     Laboratory = 2,

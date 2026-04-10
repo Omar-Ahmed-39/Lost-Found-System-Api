@@ -63,6 +63,9 @@ public class HandoverRepository : GenericRepository<Handover>, IHandoverReposito
                 m.FoundId == claim.ReportId)
             .ExecuteDeleteAsync();
 
+        // ✅ SaveChangesAsync is justified here: this method owns an explicit DB transaction
+        //    that spans multiple writes (Handover, Claim, Report, other Claims, Matches).
+        //    Callers must NOT call _unitOfWork.SaveAsync() after this — it's already committed.
         await _context.SaveChangesAsync();
         await transaction.CommitAsync();
 

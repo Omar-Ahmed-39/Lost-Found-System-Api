@@ -7,7 +7,7 @@ public class MatchingService : IMatchingService
 {
     private readonly IUnitOfWork _unitOfWork;
 
-    public MatchingService(IUnitOfWork unitOfWork, IMatchRepository matchRepository)
+    public MatchingService(IUnitOfWork unitOfWork)
     {
         _unitOfWork = unitOfWork;
     }
@@ -17,7 +17,6 @@ public class MatchingService : IMatchingService
         var report = await _unitOfWork.ItemReports.GetAsync(x => x.Id == newReportId);
         if (report == null) return;
 
-        // Determine the target report type to match against
         var targetType = report.ReportType == enReportType.Lost ? enReportType.Found : enReportType.Lost;
 
         var candidates = await _unitOfWork.ItemReports.GetAllAsync(
@@ -27,33 +26,36 @@ public class MatchingService : IMatchingService
             isTracking: false
         );
 
-        var potentialMatches = new List<Match>();
+        // Track candidate id alongside each match so we can notify only matched candidates
+        var potentialMatches = new List<(Match Match, int CandidateId)>();
         foreach (var candidate in candidates)
         {
             var matchScore = CalculateSimilarityScore(report, candidate);
-            if (matchScore > 30.0f) // Only consider matches with a positive score
+            if (matchScore > 30.0f)
             {
                 var lostId  = report.ReportType == enReportType.Lost  ? report.Id : candidate.Id;
                 var foundId = report.ReportType == enReportType.Found ? report.Id : candidate.Id;
-                potentialMatches.Add(Match.Create(lostId, foundId, matchScore, matchedBy: 0));
+                potentialMatches.Add((Match.Create(lostId, foundId, matchScore, matchedBy: 0), candidate.Id));
             }
         }
 
         var topMatches = potentialMatches
-            .OrderByDescending(m => m.MatchScore)
+            .OrderByDescending(m => m.Match.MatchScore)
             .Take(5)
             .ToList();
 
         if (topMatches.Any())
         {
-            await _unitOfWork.Matches.AddRangeAsync(topMatches);
+            await _unitOfWork.Matches.AddRangeAsync(topMatches.Select(m => m.Match));
             await _unitOfWork.SaveAsync();
 
-            // Notify the owner of the triggering report and each matched candidate owner
-            var notifiedUsers = new HashSet<int>();
-            notifiedUsers.Add(report.UserId);
-            foreach (var candidate in candidates)
-                notifiedUsers.Add(candidate.UserId);
+            var candidateById = candidates.ToDictionary(c => c.Id);
+            var notifiedUsers = new HashSet<int> { report.UserId };
+            foreach (var (_, candidateId) in topMatches)
+            {
+                if (candidateById.TryGetValue(candidateId, out var matchedCandidate))
+                    notifiedUsers.Add(matchedCandidate.UserId);
+            }
 
             var notifications = notifiedUsers.Select(uid => new Notification
             {
@@ -67,14 +69,15 @@ public class MatchingService : IMatchingService
         }
     }
 
-    private float CalculateSimilarityScore(ItemReport report, ItemReport candidate)
+    private static float CalculateSimilarityScore(ItemReport report, ItemReport candidate)
     {
         if (report.CategoryId != candidate.CategoryId)
-            return 0; // Different categories are not a match , Hard filter for category
+            return 0; 
+
         float score = 0;
 
         if (report.LocationId == candidate.LocationId)
-            score += 50; // Location match is a strong indicator
+            score += 50;
 
         var daysDiff = Math.Abs((report.DateReported - candidate.DateReported).TotalDays);
         if (daysDiff <= 3)
@@ -82,13 +85,13 @@ public class MatchingService : IMatchingService
         else if (daysDiff <= 7)
             score += 15;
 
-        if (string.IsNullOrWhiteSpace(report.Color) &&
-            report.Color.Equals(candidate.Color, StringComparison.OrdinalIgnoreCase)
-        )
+        
+        if (!string.IsNullOrWhiteSpace(report.Color) &&
+            report.Color.Equals(candidate.Color, StringComparison.OrdinalIgnoreCase))
         {
-            score += 10; // Color match adds to the score
+            score += 10;
         }
 
-        return Math.Min(score, 100); // Cap the score at 100
+        return Math.Min(score, 100);
     }
 }

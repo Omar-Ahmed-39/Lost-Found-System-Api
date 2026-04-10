@@ -41,7 +41,7 @@ public class ClaimRepository : GenericRepository<Claim>, IClaimRepository
         claim.ApprovalStatus = enApprovalStatus.Approved;
         claim.UpdatedAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync();
+        // ✅ SaveChangesAsync removed — caller owns the transaction boundary
         return true;
     }
 
@@ -58,7 +58,7 @@ public class ClaimRepository : GenericRepository<Claim>, IClaimRepository
         claim.Remarks = remarks;
         claim.UpdatedAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync();
+        // ✅ SaveChangesAsync removed — caller owns the transaction boundary
         return true;
     }
 
@@ -77,7 +77,7 @@ public class ClaimRepository : GenericRepository<Claim>, IClaimRepository
         claim.ApprovalStatus = enApprovalStatus.Cancelled;
         claim.CancelledAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync();
+        // ✅ SaveChangesAsync removed — caller owns the transaction boundary
         return true;
     }
 }

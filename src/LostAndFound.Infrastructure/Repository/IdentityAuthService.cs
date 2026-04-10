@@ -14,15 +14,18 @@ public class IdentityAuthService : IAuthenticationService
 {
     private readonly UserManager<User> _userManager;
     private readonly RoleManager<Role> _roleManager;
+    private readonly IJwtProvider _jwtProvider;
     private readonly IConfiguration _configuration;
 
     public IdentityAuthService(
         UserManager<User> userManager,
         RoleManager<Role> roleManager,
+        IJwtProvider jwtProvider,
         IConfiguration configuration)
     {
         _userManager = userManager;
         _roleManager = roleManager;
+        _jwtProvider = jwtProvider;
         _configuration = configuration;
     }
 
@@ -61,12 +64,32 @@ public class IdentityAuthService : IAuthenticationService
 
     public async Task<(string Token, string RefreshToken)?> RefreshTokenAsync(string token, string refreshToken)
     {
+
         var handler = new JwtSecurityTokenHandler();
-        if (!handler.CanReadToken(token)) return null;
 
-        var jwtToken = handler.ReadJwtToken(token);
-        var email = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+        ClaimsPrincipal principal;
+        try
+        {
+            var validationParams = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = false, // Expired tokens are valid for refresh
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = _configuration["JwtOptions:Issuer"],
+                ValidAudience = _configuration["JwtOptions:Audience"],
+                IssuerSigningKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(_configuration["JwtOptions:SecretKey"]!))
+            };
 
+            principal = handler.ValidateToken(token, validationParams, out _);
+        }
+        catch (SecurityTokenException)
+        {
+            return null; // Invalid signature — reject the request
+        }
+
+        var email = principal.FindFirstValue(ClaimTypes.Email);
         if (email == null) return null;
 
         var user = await _userManager.FindByEmailAsync(email);
@@ -103,28 +126,8 @@ public class IdentityAuthService : IAuthenticationService
     private async Task<(string Token, string RefreshToken)> GenerateTokensAsync(User user)
     {
         var roles = await _userManager.GetRolesAsync(user);
-        var authClaims = new List<System.Security.Claims.Claim>
-        {
-            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new(ClaimTypes.Email, user.Email!),
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-        };
 
-        foreach (var role in roles)
-        {
-            authClaims.Add(new(ClaimTypes.Role, role));
-        }
-
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtSettings:Key"]!));
-        var token = new JwtSecurityToken(
-            issuer: _configuration["JwtSettings:Issuer"],
-            audience: _configuration["JwtSettings:Audience"],
-            expires: DateTime.Now.AddHours(2),
-            claims: authClaims,
-            signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
-        );
-
-        var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+        var tokenString = _jwtProvider.GenerateToken(user, roles);
 
         var randomNumber = new byte[32];
         using var rng = RandomNumberGenerator.Create();

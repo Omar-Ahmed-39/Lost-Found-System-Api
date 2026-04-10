@@ -21,24 +21,39 @@ public class ExceptionMiddleware
         {
             await _next(content);
         }
+        catch (UnauthorizedAccessException ex)
+        {
+            // Thrown by FirebaseAuthService for invalid/expired tokens
+            _logger.LogWarning(ex, "Unauthorized: {Message}", ex.Message);
+            await WriteJsonResponseAsync(content, (int)HttpStatusCode.Unauthorized, "Unauthorized.", ex);
+        }
+        catch (NotSupportedException ex)
+        {
+            // Thrown by FirebaseAuthService for unsupported operations (e.g. Register, RefreshToken)
+            _logger.LogWarning(ex, "Not supported: {Message}", ex.Message);
+            await WriteJsonResponseAsync(content, (int)HttpStatusCode.BadRequest, ex.Message, ex);
+        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, ex.Message);
-
-            content.Response.ContentType = "application/json";
-            content.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-
-            var response = new
-            {
-                Succeeded = false,
-                Message = _env.IsDevelopment() ? ex.Message : "An unexpected error occurred , please try again later.",
-                Errors = _env.IsDevelopment() ? new { ex.StackTrace } : null
-            };
-
-            var option = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-            var json = JsonSerializer.Serialize(response, option);
-
-            await content.Response.WriteAsync(json);
+            _logger.LogError(ex, "Unhandled exception: {Message}", ex.Message);
+            await WriteJsonResponseAsync(content, (int)HttpStatusCode.InternalServerError,
+                _env.IsDevelopment() ? ex.Message : "An unexpected error occurred, please try again later.", ex);
         }
+    }
+
+    private async Task WriteJsonResponseAsync(HttpContext context, int statusCode, string message, Exception ex)
+    {
+        context.Response.ContentType = "application/json";
+        context.Response.StatusCode = statusCode;
+
+        var response = new
+        {
+            Succeeded = false,
+            Message = message,
+            Errors = _env.IsDevelopment() ? new { ex.StackTrace } : null
+        };
+
+        var option = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+        await context.Response.WriteAsync(JsonSerializer.Serialize(response, option));
     }
 }
