@@ -6,26 +6,23 @@ using MediatR;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
-builder.Services.AddSwaggerDocumentation();
 builder.Services.AddControllers();
+builder.Services.AddSwaggerDocumentation(); // Swashbuckle — sole OpenAPI provider
 
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(typeof(VerifyMatchCommand).Assembly));
+
+builder.Services.AddAuthentication();
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// add middleware for catching exceptions globally
+// Global exception handling — must be first in the pipeline
 app.UseMiddleware<ExceptionMiddleware>();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
     app.UseSwagger();
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Lost and Found API v1"));
 }
