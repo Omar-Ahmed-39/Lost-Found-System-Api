@@ -18,7 +18,6 @@ public class ItemReportRepository : GenericRepository<ItemReport>, IItemReportRe
         report.StatusType = enStatusType.Open;
 
         await _context.ItemReports.AddAsync(report);
-        // ✅ SaveChangesAsync removed — caller (controller/UoW) owns the transaction boundary
         return report;
     }
 
@@ -53,7 +52,6 @@ public class ItemReportRepository : GenericRepository<ItemReport>, IItemReportRe
 
         ExistingReport.UpdatedAt = DateTime.UtcNow;
 
-        // ✅ SaveChangesAsync removed — caller owns the transaction boundary
         return true;
     }
 
@@ -68,7 +66,6 @@ public class ItemReportRepository : GenericRepository<ItemReport>, IItemReportRe
             return false;
 
         _context.ItemReports.Remove(Report);
-        // ✅ SaveChangesAsync removed — caller owns the transaction boundary
         return true;
     }
 
@@ -86,14 +83,13 @@ public class ItemReportRepository : GenericRepository<ItemReport>, IItemReportRe
             return false;
 
         Report.StatusType = enStatusType.Canceled;
-        // ✅ SaveChangesAsync removed — caller owns the transaction boundary
         return true;
     }
 
     public async Task<ItemReport?> GetByIdAsync(int reportId)
     {
         return await _context.ItemReports
-            .AsNoTracking() // ✅ Read-only query
+            .AsNoTracking() 
             .Include(r => r.Category)
             .Include(r => r.User)
             .FirstOrDefaultAsync(r => r.Id == reportId);
@@ -110,7 +106,7 @@ public class ItemReportRepository : GenericRepository<ItemReport>, IItemReportRe
     public async Task<IEnumerable<ItemReport>> FilterAsync(ItemReportFilter filter)
     {
         var query = _context.ItemReports
-            .AsNoTracking() // ✅ Read-only query
+            .AsNoTracking() 
             .Include(r => r.Category)
             .Include(r => r.User)
             .AsQueryable();

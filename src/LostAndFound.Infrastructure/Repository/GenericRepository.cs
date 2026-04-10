@@ -112,8 +112,6 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
         if (predicate != null)
             query = query.Where(predicate);
 
-        // ✅ Count first on the full filtered set, then apply pagination
-        //    This avoids re-executing the same predicate/includes a second time on the paged slice
         var totalCount = await query.CountAsync();
 
         var items = await query
