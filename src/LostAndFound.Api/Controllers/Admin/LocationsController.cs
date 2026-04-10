@@ -85,7 +85,7 @@ public class LocationsController : BaseController
         location.LocationType = request.LocationType;
         location.DepartmentId = request.DepartmentId;
 
-        _unitOfWork.Locations.Update(location);
+        // ✅ No explicit Update() needed — FindAsync already tracks the entity
         await _unitOfWork.SaveAsync();
 
         var response = new LocationResponseDto
