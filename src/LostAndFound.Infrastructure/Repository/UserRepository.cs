@@ -11,7 +11,7 @@ public class UserRepository : GenericRepository<User>, IUserRepository
     public async Task<User?> GetByEmailAsync(string email)
     {
         return await _context.Users
-            .AsNoTracking() // ✅ Read-only lookup
+            .AsNoTracking() 
             .FirstOrDefaultAsync(u => u.Email == email);
     }
 
