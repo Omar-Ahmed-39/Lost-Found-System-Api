@@ -1,5 +1,8 @@
+using LostAndFound.Core.Entities;
 using LostAndFound.Core.Enums;
 using LostAndFound.Core.Filters;
+using LostAndFound.Core.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace LostAndFound.Infrastructure.Repository;
 
@@ -12,127 +15,168 @@ public class ItemReportRepository : GenericRepository<ItemReport>, IItemReportRe
         _context = context;
     }
 
-    public async Task<ItemReport> CreateAsync(ItemReport report)
+    public async Task<(IEnumerable<ItemReport> Items, int TotalCount)> GetFilteredAsync(
+       ItemReportFilter filter,
+       int pageNumber,
+       int pageSize)
     {
-        report.CreatedAt = DateTime.UtcNow;
-        report.StatusType = enStatusType.Open;
+        IQueryable<ItemReport> query = _context.ItemReports
+            .Include(r => r.Category)
+            .Include(r => r.Location)
+            .Include(r => r.User)
+            .Include(r => r.Attachments);
 
-        await _context.ItemReports.AddAsync(report);
-        await _context.SaveChangesAsync();
-        return report;
-    }
-
-    public async Task<bool> UpdateAsync(ItemReport report, int userId, bool isAdmin)
-    {
-        var ExistingReport = await _context.ItemReports.FindAsync(report.Id);
-
-        if (ExistingReport == null)
-            return false;
-
-        // Only allow the owner of the report or an admin to update it, User cann't update other reports
-        if (!isAdmin && ExistingReport.UserId != userId)
-            return false;
-
-        // Cann't update closed reports
-        if (ExistingReport.StatusType == enStatusType.Closed)
-            return false;
-
-        ExistingReport.ItemName = report.ItemName;
-        ExistingReport.Color = report.Color;
-        ExistingReport.ConditionType = report.ConditionType;
-        ExistingReport.LocationId = report.LocationId;
-        ExistingReport.Description = report.Description;
-        ExistingReport.ConditionType = report.ConditionType;
-
-
-        if (isAdmin)
+        if (!string.IsNullOrWhiteSpace(filter.Search))
         {
-            ExistingReport.AdminNotes = report.AdminNotes;
-            ExistingReport.StatusType = report.StatusType;
+            var search = filter.Search.Trim();
+
+            query = query.Where(r =>
+                r.ItemName.Contains(search) ||
+                r.Description.Contains(search) ||
+                r.User.Name.Contains(search) ||
+                r.Category.Name.Contains(search) ||
+                r.Location.Name.Contains(search));
         }
 
-        ExistingReport.UpdatedAt = DateTime.UtcNow;
+        if (filter.CategoryId.HasValue)
+            query = query.Where(r => r.CategoryId == filter.CategoryId.Value);
 
-        await _context.SaveChangesAsync();
-        return true;
+        if (filter.LocationId.HasValue)
+            query = query.Where(r => r.LocationId == filter.LocationId.Value);
+
+        if (filter.StatusType.HasValue)
+            query = query.Where(r => r.StatusType == filter.StatusType.Value);
+
+        if (filter.ReportType.HasValue)
+            query = query.Where(r => r.ReportType == filter.ReportType.Value);
+
+        if (filter.FromDate.HasValue)
+            query = query.Where(r => r.DateReported >= filter.FromDate.Value);
+
+        if (filter.ToDate.HasValue)
+            query = query.Where(r => r.DateReported <= filter.ToDate.Value);
+
+        var totalCount = await query.CountAsync();
+
+        var items = await query
+            .OrderByDescending(r => r.DateReported)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (items, totalCount);
     }
 
-    public async Task<bool> DeleteAsync(int reportId, int userId, bool isAdmin)
-    {
-        var Report = await _context.ItemReports.FindAsync(reportId);
-
-        if (Report == null)
-            return false;
-
-        if(!isAdmin && Report.UserId != userId) 
-            return false;
-
-        _context.ItemReports.Remove(Report);
-        await _context.SaveChangesAsync();
-        return true;
-    }
-
-    public async Task<bool> CancelAsync(int reportId, int userId, bool isAdmin)
-    {
-        var Report = await _context.ItemReports.FindAsync(reportId);
-
-        if (Report == null) 
-            return false;
-
-        if (!isAdmin && Report.UserId != userId)
-            return false;
-
-        if(Report.StatusType == enStatusType.Closed)
-            return false;
-
-        Report.StatusType = enStatusType.Canceled;
-        await _context.SaveChangesAsync();
-        return true;
-    }
-
-    public async Task<ItemReport?> GetByIdAsync(int reportId)
+    public async Task<ItemReport?> GetDetailsAsync(int reportId)
     {
         return await _context.ItemReports
             .Include(r => r.Category)
+            .Include(r => r.Location)
             .Include(r => r.User)
+            .Include(r => r.Attachments)
+            .Include(r => r.Claims)
+            .Include(r => r.LostMatches)
+            .Include(r => r.FoundMatches)
             .FirstOrDefaultAsync(r => r.Id == reportId);
+    }
+
+    public async Task<bool> UpdateReportAsync(ItemReport report, int userId, bool isAdmin)
+    {
+        var existing = await _context.ItemReports.FindAsync(report.Id);
+        if (existing == null)
+            return false;
+
+        if (!isAdmin && existing.UserId != userId)
+            return false;
+
+        if (existing.StatusType == enStatusType.Closed && !isAdmin)
+            return false;
+
+        existing.ItemName = report.ItemName;
+        existing.Color = report.Color;
+        existing.ConditionType = report.ConditionType;
+        existing.Description = report.Description;
+        existing.LocationId = report.LocationId;
+        existing.CategoryId = report.CategoryId;
+        existing.DateReported = report.DateReported;
+
+        if (isAdmin)
+        {
+            existing.AdminNotes = report.AdminNotes;
+        }
+
+        existing.UpdatedAt = DateTime.UtcNow;
+
+        return true;
+    }
+    public async Task<bool> DeleteReportAsync(int reportId, int userId, bool isAdmin)
+    {
+        var report = await _context.ItemReports.FindAsync(reportId);
+        if (report == null)
+            return false;
+
+        if (!isAdmin && report.UserId != userId)
+            return false;
+
+        _context.ItemReports.Remove(report);
+        return true;
+    }
+
+    public async Task<bool> CancelReportAsync(int reportId, int userId, bool isAdmin)
+    {
+        var report = await _context.ItemReports.FindAsync(reportId);
+        if (report == null)
+            return false;
+
+        if (!isAdmin && report.UserId != userId)
+            return false;
+
+        if (report.StatusType == enStatusType.Closed ||
+            report.StatusType == enStatusType.Returned ||
+            report.StatusType == enStatusType.Canceled)
+            return false;
+
+        report.StatusType = enStatusType.Canceled;
+        report.UpdatedAt = DateTime.UtcNow;
+        return true;
+    }
+
+    public async Task<bool> ChangeStatusAsync(int reportId, enStatusType newStatus, int userId, bool isAdmin)
+    {
+        var report = await _context.ItemReports.FindAsync(reportId);
+        if (report == null)
+            return false;
+
+        if (!isAdmin)
+            return false;
+
+        report.StatusType = newStatus;
+        report.UpdatedAt = DateTime.UtcNow;
+        return true;
+    }
+
+    public async Task<bool> ChangeReportTypeAsync(int reportId, enReportType newType, int userId, bool isAdmin)
+    {
+        var report = await _context.ItemReports.FindAsync(reportId);
+        if (report == null)
+            return false;
+
+        if (!isAdmin)
+            return false;
+
+        report.ReportType = newType;
+        report.UpdatedAt = DateTime.UtcNow;
+
+        return true;
     }
 
     public async Task<IEnumerable<ItemReport>> GetUserReportsAsync(int userId)
     {
         return await _context.ItemReports
-            .Where(r => r.UserId == userId)
-            .OrderByDescending(r => r.CreatedAt)
-            .ToListAsync();
-    }
-
-    public async Task<IEnumerable<ItemReport>> FilterAsync(ItemReportFilter filter)
-    {
-        var query = _context.ItemReports
             .Include(r => r.Category)
-            .Include(r => r.User)
-            .AsQueryable();
-
-        if(filter.CategoryId.HasValue)
-            query = query.Where(r => r.CategoryId == filter.CategoryId);
-
-        if(filter.StatusType.HasValue)
-            query = query.Where(r => r.StatusType == filter.StatusType);
-
-        if(filter.ReportType.HasValue)
-            query = query.Where(r => r.ReportType == filter.ReportType);
-
-        if(filter.FromDate.HasValue)
-            query = query.Where(r => r.CreatedAt >= filter.FromDate);
-
-        if(filter.ToDate.HasValue)
-            query = query.Where(r => r.CreatedAt <= filter.ToDate);
-
-        if(!string.IsNullOrEmpty(filter.Search))
-        {
-            query = query.Where(r => r.ItemName.Contains(filter.Search) || r.Description.Contains(filter.Search));
-        }
-
-        return await query.OrderByDescending(r => r.CreatedAt).ToListAsync();
+            .Include(r => r.Location)
+            .Where(r => r.UserId == userId)
+            .OrderByDescending(r => r.DateReported)
+            .ToListAsync();
     }
 }
