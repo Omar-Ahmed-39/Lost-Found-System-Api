@@ -12,5 +12,7 @@ public interface IUnitOfWork : IDisposable
     IMatchRepository Matches { get; }
     IDashboardRepository Dashboard { get; }
     IFeedbackRepository Feedbacks { get; }
+    IClaimRepository Claims { get; }
+    IUserRepository Users { get; }
     Task<int> SaveAsync();
 }
