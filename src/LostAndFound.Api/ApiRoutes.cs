@@ -46,4 +46,15 @@ public static class ApiRoutes
         public const string Update  = Base + "/admin/categories/{id}";
         public const string Delete  = Base + "/admin/categories/{id}";
     }
+
+    public static class Users
+    {
+        public const string GetAll      = Base + "/admin/users";
+        public const string GetById     = Base + "/admin/users/{id}";
+        public const string Create      = Base + "/admin/users";
+        public const string Update      = Base + "/admin/users/{id}";
+        public const string Delete      = Base + "/admin/users/{id}";
+        public const string ToggleBlock = Base + "/admin/users/{id}/block";
+        public const string ChangeRole  = Base + "/admin/users/{id}/role";
+    }
 }

@@ -9,7 +9,6 @@ namespace LostAndFound.Infrastructure.Repository
         public UnitOfWork(ApplicationDbContext context)
         {
             _context = context;
-            Users = new UserRepository(context);
             Matches = new MatchRepository(context);
             ItemReports = new ItemReportRepository(context);
             Locations = new GenericRepository<Location>(context);
@@ -26,7 +25,6 @@ namespace LostAndFound.Infrastructure.Repository
         public IGenericRepository<Department> Departments { get; }
         public IItemReportRepository ItemReports { get; }
         public IMatchRepository Matches { get; }
-        public IUserRepository Users { get; }
 
         public void Dispose()
         {
