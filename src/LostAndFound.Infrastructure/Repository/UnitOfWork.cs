@@ -17,6 +17,7 @@ namespace LostAndFound.Infrastructure.Repository
             Notifications = new NotificationRepository(context);
             Universities = new GenericRepository<University>(context);
             Departments = new GenericRepository<Department>(context);
+            Feedbacks = new FeedbackRepository(context);
         }
 
         public IGenericRepository<Location> Locations { get; }
@@ -27,6 +28,7 @@ namespace LostAndFound.Infrastructure.Repository
         public IItemReportRepository ItemReports { get; }
         public IMatchRepository Matches { get; }
         public IDashboardRepository Dashboard { get; }
+        public IFeedbackRepository Feedbacks { get; }
 
         public void Dispose()
         {
