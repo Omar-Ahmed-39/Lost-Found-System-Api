@@ -11,5 +11,6 @@ public interface IUnitOfWork : IDisposable
     IItemReportRepository ItemReports { get; }
     IMatchRepository Matches { get; }
     IDashboardRepository Dashboard { get; }
+    IFeedbackRepository Feedbacks { get; }
     Task<int> SaveAsync();
 }
