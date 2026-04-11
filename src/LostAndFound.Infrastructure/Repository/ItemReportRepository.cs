@@ -16,10 +16,13 @@ public class ItemReportRepository : GenericRepository<ItemReport>, IItemReportRe
     }
 
     public async Task<(IEnumerable<ItemReport> Items, int TotalCount)> GetFilteredAsync(
-       ItemReportFilter filter,
-       int pageNumber,
-       int pageSize)
+        ItemReportFilter filter,
+        int pageNumber,
+        int pageSize)
     {
+        pageNumber = pageNumber < 1 ? 1 : pageNumber;
+        pageSize = pageSize < 1 ? 10 : pageSize;
+
         IQueryable<ItemReport> query = _context.ItemReports
             .Include(r => r.Category)
             .Include(r => r.Location)
@@ -106,9 +109,9 @@ public class ItemReportRepository : GenericRepository<ItemReport>, IItemReportRe
         }
 
         existing.UpdatedAt = DateTime.UtcNow;
-
         return true;
     }
+
     public async Task<bool> DeleteReportAsync(int reportId, int userId, bool isAdmin)
     {
         var report = await _context.ItemReports.FindAsync(reportId);
@@ -166,7 +169,6 @@ public class ItemReportRepository : GenericRepository<ItemReport>, IItemReportRe
 
         report.ReportType = newType;
         report.UpdatedAt = DateTime.UtcNow;
-
         return true;
     }
 

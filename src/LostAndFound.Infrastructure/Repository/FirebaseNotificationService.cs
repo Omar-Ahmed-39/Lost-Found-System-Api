@@ -29,24 +29,24 @@ public class FirebaseNotificationService : IPushNotificationService
         try
         {
             string response = await FirebaseMessaging.DefaultInstance.SendAsync(message);
-            _logger.LogInformation($"Successfully sent message: {response}");
+            _logger.LogInformation("Successfully sent FCM message: {MessageId}", response);
             return true;
         }
         catch (FirebaseMessagingException ex)
         {
             if (ex.MessagingErrorCode == MessagingErrorCode.Unregistered)
             {
-                _logger.LogWarning($"Device token {deviceToken} is unregistered. Removing from database.");
+                _logger.LogWarning("Device token {DeviceToken} is unregistered. Remove it from the database.", deviceToken);
             }
             else
             {
-                _logger.LogError($"Firebase Error: {ex.Message}");
+                _logger.LogError(ex, "Firebase FCM error sending to {DeviceToken}: {Message}", deviceToken, ex.Message);
             }
             return false;
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Unexpected error: {ex.Message}");
+            _logger.LogError(ex, "Unexpected error sending FCM notification to {DeviceToken}", deviceToken);
             return false;
         }
     }

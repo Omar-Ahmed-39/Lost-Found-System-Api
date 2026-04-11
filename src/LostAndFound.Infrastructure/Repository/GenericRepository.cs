@@ -112,12 +112,12 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
         if (predicate != null)
             query = query.Where(predicate);
 
+        var totalCount = await query.CountAsync();
+
         var items = await query
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
-
-        var totalCount = await query.CountAsync();
 
         return (items, totalCount);
     }
