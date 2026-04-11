@@ -1,38 +1,49 @@
 using System.Security.Claims;
-using System.Security.Cryptography;
-using LostAndFound.Core.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LostAndFound.Api.Controllers;
 
 [ApiController]
-public class BaseController : ControllerBase
+public abstract class BaseController : ControllerBase
 {
     private IMediator? _mediator;
     protected IMediator Mediator => _mediator ??= HttpContext.RequestServices.GetService<IMediator>()!;
+
+    /// <summary>
+    /// Returns the authenticated user's ID from JWT claims.
+    /// Throws <see cref="UnauthorizedAccessException"/> if the claim is missing or invalid.
+    /// </summary>
     protected int GetUserId()
     {
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        return int.TryParse(userIdClaim, out var userId) ? userId : 0;
+        if (!int.TryParse(userIdClaim, out var userId) || userId <= 0)
+            throw new UnauthorizedAccessException("Invalid or missing user identity claim.");
+
+        return userId;
     }
-    protected IActionResult Success<T>(T data, string? message = "Operation Completed Successfully .")
+
+    protected IActionResult Success<T>(T data, string? message = "Operation Completed Successfully.")
     {
         return Ok(ApiResponse<T>.Success(data, message));
     }
-    protected IActionResult Created<T>(T data, string? message = "Item Created Successfully .")
+
+    protected IActionResult Created<T>(T data, string? message = "Item Created Successfully.")
     {
-        return StatusCode(201, ApiResponse<T>.Success(data, message));
+        return StatusCode(StatusCodes.Status201Created, ApiResponse<T>.Success(data, message));
     }
-    protected IActionResult Error(string error, int statusCode = 400)
+
+    protected IActionResult Error(string error, int statusCode = StatusCodes.Status400BadRequest)
     {
         return StatusCode(statusCode, ApiResponse<object>.Failure(error));
     }
-    protected IActionResult Error(List<string> errors, int statusCode = 400)
+
+    protected IActionResult Error(List<string> errors, int statusCode = StatusCodes.Status400BadRequest)
     {
         return StatusCode(statusCode, ApiResponse<object>.Failure(errors));
     }
+
     protected IActionResult Paged<T>(T data, int pageNumber, int pageSize, int totalRecords, string? message = null)
     {
         return Ok(new ApiPagedResponse<T>(data, pageNumber, pageSize, totalRecords, message));

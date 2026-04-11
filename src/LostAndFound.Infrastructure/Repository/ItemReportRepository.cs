@@ -18,7 +18,6 @@ public class ItemReportRepository : GenericRepository<ItemReport>, IItemReportRe
         report.StatusType = enStatusType.Open;
 
         await _context.ItemReports.AddAsync(report);
-        await _context.SaveChangesAsync();
         return report;
     }
 
@@ -53,7 +52,6 @@ public class ItemReportRepository : GenericRepository<ItemReport>, IItemReportRe
 
         ExistingReport.UpdatedAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync();
         return true;
     }
 
@@ -68,7 +66,6 @@ public class ItemReportRepository : GenericRepository<ItemReport>, IItemReportRe
             return false;
 
         _context.ItemReports.Remove(Report);
-        await _context.SaveChangesAsync();
         return true;
     }
 
@@ -86,13 +83,13 @@ public class ItemReportRepository : GenericRepository<ItemReport>, IItemReportRe
             return false;
 
         Report.StatusType = enStatusType.Canceled;
-        await _context.SaveChangesAsync();
         return true;
     }
 
     public async Task<ItemReport?> GetByIdAsync(int reportId)
     {
         return await _context.ItemReports
+            .AsNoTracking() 
             .Include(r => r.Category)
             .Include(r => r.User)
             .FirstOrDefaultAsync(r => r.Id == reportId);
@@ -109,6 +106,7 @@ public class ItemReportRepository : GenericRepository<ItemReport>, IItemReportRe
     public async Task<IEnumerable<ItemReport>> FilterAsync(ItemReportFilter filter)
     {
         var query = _context.ItemReports
+            .AsNoTracking() 
             .Include(r => r.Category)
             .Include(r => r.User)
             .AsQueryable();

@@ -1,11 +1,10 @@
-﻿namespace LostAndFound.Core.Entities;
+﻿using Microsoft.AspNetCore.Identity;
 
-public class User
+namespace LostAndFound.Core.Entities;
+
+public class User : IdentityUser<int>
 {
-    public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-    public string PasswordHash { get; set; } = string.Empty;
     public bool IsActive { get; set; }
     public DateTime? LastLoginAt { get; set; }
     public string? FcmToken { get; set; }

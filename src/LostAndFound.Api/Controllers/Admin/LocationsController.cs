@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using LostAndFound.Api.DTOs.Locations;
 using LostAndFound.Core.Entities;
 using LostAndFound.Core.Interfaces;
@@ -16,41 +17,38 @@ public class LocationsController : BaseController
         _unitOfWork = unitOfWork;
     }
 
+    /// <summary>Returns all locations.</summary>
     [HttpGet(ApiRoutes.Locations.GetAll)]
+    [ProducesResponseType(typeof(ApiResponse<IEnumerable<LocationResponseDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetAll()
     {
         var locations = await _unitOfWork.Locations.GetAllAsync();
-        
-        var response = locations.Select(x => new LocationResponseDto
-        {
-            Id = x.Id,
-            Name = x.Name,
-            LocationType = x.LocationType,
-            DepartmentId = x.DepartmentId
-        });
-
-        return Success(response);
+        return Success(locations.Select(ToDto));
     }
 
+    /// <summary>Returns a single location by ID.</summary>
     [HttpGet(ApiRoutes.Locations.GetById)]
-    public async Task<IActionResult> GetById(int id)
+    [ProducesResponseType(typeof(ApiResponse<LocationResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> GetById([FromRoute] int id)
     {
         var location = await _unitOfWork.Locations.FindAsync(id);
-        if (location == null)
-            return Error("Location not found", 404);
+        if (location is null)
+            return Error("Location not found.", StatusCodes.Status404NotFound);
 
-        var response = new LocationResponseDto
-        {
-            Id = location.Id,
-            Name = location.Name,
-            LocationType = location.LocationType,
-            DepartmentId = location.DepartmentId
-        };
-
-        return Success(response);
+        return Success(ToDto(location));
     }
 
+    /// <summary>Creates a new location.</summary>
     [HttpPost(ApiRoutes.Locations.Create)]
+    [ProducesResponseType(typeof(ApiResponse<LocationResponseDto>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> Create([FromBody] LocationRequestDto request)
     {
         var location = new Location
@@ -63,52 +61,53 @@ public class LocationsController : BaseController
         await _unitOfWork.Locations.AddAsync(location);
         await _unitOfWork.SaveAsync();
 
-        var response = new LocationResponseDto
-        {
-            Id = location.Id,
-            Name = location.Name,
-            LocationType = location.LocationType,
-            DepartmentId = location.DepartmentId
-        };
-
-        return Created(response);
+        return Created(ToDto(location));
     }
 
+    /// <summary>Updates an existing location.</summary>
     [HttpPut(ApiRoutes.Locations.Update)]
-    public async Task<IActionResult> Update(int id, [FromBody] LocationRequestDto request)
+    [ProducesResponseType(typeof(ApiResponse<LocationResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> Update([FromRoute] int id, [FromBody] LocationRequestDto request)
     {
         var location = await _unitOfWork.Locations.FindAsync(id);
-        if (location == null)
-            return Error("Location not found", 404);
+        if (location is null)
+            return Error("Location not found.", StatusCodes.Status404NotFound);
 
         location.Name = request.Name;
         location.LocationType = request.LocationType;
         location.DepartmentId = request.DepartmentId;
 
-        _unitOfWork.Locations.Update(location);
         await _unitOfWork.SaveAsync();
-
-        var response = new LocationResponseDto
-        {
-            Id = location.Id,
-            Name = location.Name,
-            LocationType = location.LocationType,
-            DepartmentId = location.DepartmentId
-        };
-
-        return Success(response);
+        return Success(ToDto(location));
     }
 
+    /// <summary>Deletes a location by ID.</summary>
     [HttpDelete(ApiRoutes.Locations.Delete)]
-    public async Task<IActionResult> Delete(int id)
+    [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> Delete([FromRoute] int id)
     {
         var location = await _unitOfWork.Locations.FindAsync(id);
-        if (location == null)
-            return Error("Location not found", 404);
+        if (location is null)
+            return Error("Location not found.", StatusCodes.Status404NotFound);
 
         _unitOfWork.Locations.Remove(location);
         await _unitOfWork.SaveAsync();
 
         return Success(true, "Location deleted successfully.");
     }
+
+    private static LocationResponseDto ToDto(Location location) => new()
+    {
+        Id = location.Id,
+        Name = location.Name,
+        LocationType = location.LocationType,
+        DepartmentId = location.DepartmentId
+    };
 }
