@@ -62,4 +62,13 @@ public static class ApiRoutes
     {
         public const string GetStats = Base + "/admin/dashboard/stats";
     }
+
+    public static class Feedbacks
+    {
+        public const string GetAllAdmin = Base + "/admin/feedbacks";
+        public const string Reply = Base + "/admin/feedbacks/{id}/reply";
+        
+        public const string Create = Base + "/feedbacks";
+        public const string GetMyFeedbacks = Base + "/feedbacks/me";
+    }
 }
