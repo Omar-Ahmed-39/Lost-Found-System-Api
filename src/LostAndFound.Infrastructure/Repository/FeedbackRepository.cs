@@ -24,7 +24,7 @@ public class FeedbackRepository : GenericRepository<Feedback>, IFeedbackReposito
             query = query.Where(f => !f.IsReplied);
         }
 
-        return await query.OrderByDescending(f => f.CreatedAt).ToListAsync();
+        return await query.OrderByDescending(f => f.Id).ToListAsync();
     }
 
     public async Task<IEnumerable<Feedback>> GetUserFeedbacksAsync(int userId)
@@ -32,7 +32,7 @@ public class FeedbackRepository : GenericRepository<Feedback>, IFeedbackReposito
         return await _context.Feedbacks
             .AsNoTracking()
             .Where(f => f.UserId == userId)
-            .OrderByDescending(f => f.CreatedAt)
+            .OrderByDescending(f => f.Id)
             .ToListAsync();
     }
 }
