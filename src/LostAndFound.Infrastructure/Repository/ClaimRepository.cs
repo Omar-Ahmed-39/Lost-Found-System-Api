@@ -1,4 +1,8 @@
-﻿using LostAndFound.Core.Enums;
+﻿using LostAndFound.Core.Entities;
+using LostAndFound.Core.Enums;
+using LostAndFound.Core.Filters;
+using LostAndFound.Core.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace LostAndFound.Infrastructure.Repository;
 
@@ -11,64 +15,120 @@ public class ClaimRepository : GenericRepository<Claim>, IClaimRepository
         _context = context;
     }
 
-    public async Task<bool> ApproveClaimAsync(int claimId, int adminId)
+    public async Task<(IEnumerable<Claim> Items, int TotalCount)> GetFilteredAsync(
+        ClaimFilter filter,
+        int pageNumber,
+        int pageSize)
     {
-        var claim = await _context.Claims
-            .Include(c => c.Report)
-            .FirstOrDefaultAsync(c => c.Id == claimId);
+        pageNumber = pageNumber < 1 ? 1 : pageNumber;
+        pageSize = pageSize < 1 ? 10 : pageSize;
 
+        IQueryable<Claim> query = _context.Claims
+            .Include(c => c.User)
+            .Include(c => c.Report)
+                .ThenInclude(r => r.Location)
+            .Include(c => c.Report)
+                .ThenInclude(r => r.Attachments);
+
+        if (!string.IsNullOrWhiteSpace(filter.Search))
+        {
+            var search = filter.Search.Trim();
+
+            query = query.Where(c =>
+                c.User.Name.Contains(search) ||
+                c.Report.ItemName.Contains(search) ||
+                c.Remarks.Contains(search));
+        }
+
+        if (filter.ApprovalStatus.HasValue)
+            query = query.Where(c => c.ApprovalStatus == filter.ApprovalStatus.Value);
+
+        if (filter.FromDate.HasValue)
+            query = query.Where(c => c.ClaimDate >= filter.FromDate.Value);
+
+        if (filter.ToDate.HasValue)
+            query = query.Where(c => c.ClaimDate <= filter.ToDate.Value);
+
+        var totalCount = await query.CountAsync();
+
+        var items = await query
+            .OrderByDescending(c => c.ClaimDate)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (items, totalCount);
+    }
+
+    public async Task<Claim?> GetDetailsAsync(int claimId)
+    {
+        return await _context.Claims
+            .Include(c => c.User)
+            .Include(c => c.Report)
+                .ThenInclude(r => r.Location)
+            .Include(c => c.Report)
+                .ThenInclude(r => r.Attachments)
+            .Include(c => c.Report)
+                .ThenInclude(r => r.User)
+            .Include(c => c.Handover)
+            .FirstOrDefaultAsync(c => c.Id == claimId);
+    }
+
+    public async Task<bool> ApproveClaimAsync(int claimId, int adminUserId)
+    {
+        var claim = await _context.Claims.FindAsync(claimId);
         if (claim == null)
             return false;
 
         if (claim.ApprovalStatus != enApprovalStatus.Pending)
             return false;
 
-        if (claim.Report.ReportType != enReportType.Found)
-            return false;
-
-        if (claim.Report.StatusType != enStatusType.Open)
-            return false;
-
-        // Ensure only one claim can be approved per report
-        var approvedExists = await _context.Claims
-            .AnyAsync(c =>
-                c.ReportId == claim.ReportId &&
-                c.ApprovalStatus == enApprovalStatus.Approved);
-
-        if (approvedExists)
-            return false;
-
         claim.ApprovalStatus = enApprovalStatus.Approved;
         claim.UpdatedAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync();
+        var otherClaims = await _context.Claims
+            .Where(c => c.ReportId == claim.ReportId && c.Id != claim.Id)
+            .ToListAsync();
+
+        foreach (var otherClaim in otherClaims)
+        {
+            if (otherClaim.ApprovalStatus == enApprovalStatus.Pending)
+            {
+                otherClaim.ApprovalStatus = enApprovalStatus.Closed;
+                otherClaim.UpdatedAt = DateTime.UtcNow;
+            }
+        }
+
         return true;
     }
 
-    public async Task<bool> RejectClaimAsync(int claimId, int adminId, string remarks)
+    public async Task<bool> RejectClaimAsync(int claimId, string remarks, int adminUserId)
     {
         var claim = await _context.Claims.FindAsync(claimId);
         if (claim == null)
             return false;
 
-        if (claim.ApprovalStatus == enApprovalStatus.Completed)
+        if (claim.ApprovalStatus != enApprovalStatus.Pending &&
+            claim.ApprovalStatus != enApprovalStatus.Approved)
+            return false;
+
+        if (string.IsNullOrWhiteSpace(remarks))
             return false;
 
         claim.ApprovalStatus = enApprovalStatus.Rejected;
         claim.Remarks = remarks;
         claim.UpdatedAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync();
         return true;
     }
 
-    public async Task<bool> CancelClaimAsync(int claimId, int userId)
+    public async Task<bool> CancelClaimAsync(int claimId, int userId, bool isAdmin)
     {
         var claim = await _context.Claims.FindAsync(claimId);
         if (claim == null)
             return false;
 
-        if (claim.UserId != userId)
+        if (!isAdmin && claim.UserId != userId)
             return false;
 
         if (claim.ApprovalStatus != enApprovalStatus.Pending)
@@ -76,8 +136,45 @@ public class ClaimRepository : GenericRepository<Claim>, IClaimRepository
 
         claim.ApprovalStatus = enApprovalStatus.Cancelled;
         claim.CancelledAt = DateTime.UtcNow;
+        claim.UpdatedAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync();
         return true;
+    }
+
+    public async Task<IEnumerable<Claim>> GetUserClaimsAsync(int userId)
+    {
+        return await _context.Claims
+            .Include(c => c.Report)
+            .Where(c => c.UserId == userId)
+            .OrderByDescending(c => c.ClaimDate)
+            .ToListAsync();
+    }
+
+    public async Task<double?> GetMatchScoreForClaimAsync(int claimId)
+    {
+        var claim = await _context.Claims
+            .Include(c => c.Report)
+            .FirstOrDefaultAsync(c => c.Id == claimId);
+
+        if (claim == null)
+            return null;
+
+        var lostReport = await _context.ItemReports
+            .AsNoTracking()
+            .FirstOrDefaultAsync(r =>
+                r.UserId == claim.UserId &&
+                r.ReportType == enReportType.Lost &&
+                r.CategoryId == claim.Report.CategoryId);
+
+        if (lostReport == null)
+            return null;
+
+        var match = await _context.Matches
+            .AsNoTracking()
+            .FirstOrDefaultAsync(m =>
+                m.LostId == lostReport.Id &&
+                m.FoundId == claim.ReportId);
+
+        return match?.MatchScore;
     }
 }
