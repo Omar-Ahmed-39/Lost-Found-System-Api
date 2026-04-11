@@ -18,7 +18,7 @@ public static class ApiRoutes
     public static class Matches
     {
         public const string GetAll    = Base + "/matches";
-        public const string GetPending = Base + "/matches/pending";   // fixed: was /Pending (PascalCase)
+        public const string GetPending = Base + "/matches/pending";  
         public const string GetById   = Base + "/matches/{matchId}";
         public const string Verify    = Base + "/matches/{matchId}/verify";
     }
