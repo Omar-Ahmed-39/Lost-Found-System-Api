@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using LostAndFound.Core.Interfaces;
 using LostAndFound.Infrastructure.Interceptors;
+using LostAndFound.Infrastructure.Services;
 
 namespace LostAndFound.Infrastructure.Repository;
 
@@ -24,7 +25,10 @@ public static class DependencyInjection
         });
 
         // ── Unit of Work & Repositories ───────────────────────────────────────
-        services.AddScoped<IUnitOfWork, UnitOfWork>();        // ── ASP.NET Core Identity ─────────────────────────────────────────────
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<IFileService, FileService>();
+
+        // ── ASP.NET Core Identity ─────────────────────────────────────────────
         services.AddIdentity<User, Role>(options =>
         {
             options.Password.RequireDigit = true;
