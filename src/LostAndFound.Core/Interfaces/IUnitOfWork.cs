@@ -10,6 +10,8 @@ public interface IUnitOfWork : IDisposable
     INotificationRepository Notifications { get; }
     IItemReportRepository ItemReports { get; }
     IMatchRepository Matches { get; }
+    IDashboardRepository Dashboard { get; }
+    IFeedbackRepository Feedbacks { get; }
     IClaimRepository Claims { get; }
     IUserRepository Users { get; }
     Task<int> SaveAsync();

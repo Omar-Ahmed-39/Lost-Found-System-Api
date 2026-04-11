@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using LostAndFound.Core.Entities;
 using LostAndFound.Core.Interfaces;
 
@@ -7,7 +8,7 @@ namespace LostAndFound.Infrastructure.Repository
     {
         private readonly ApplicationDbContext _context;
 
-        public UnitOfWork(ApplicationDbContext context)
+        public UnitOfWork(ApplicationDbContext context, UserManager<User> userManager)
         {
             _context = context;
 
@@ -15,12 +16,14 @@ namespace LostAndFound.Infrastructure.Repository
             Matches = new MatchRepository(context);
             Claims = new ClaimRepository(context);
             ItemReports = new ItemReportRepository(context);
+            Dashboard = new DashboardRepository(context, userManager);
 
             Locations = new GenericRepository<Location>(context);
             Categories = new GenericRepository<Category>(context);
             Notifications = new NotificationRepository(context);
             Universities = new GenericRepository<University>(context);
             Departments = new GenericRepository<Department>(context);
+            Feedbacks = new FeedbackRepository(context);
         }
 
         public IGenericRepository<Location> Locations { get; }
@@ -31,6 +34,8 @@ namespace LostAndFound.Infrastructure.Repository
 
         public IItemReportRepository ItemReports { get; }
         public IMatchRepository Matches { get; }
+        public IDashboardRepository Dashboard { get; }
+        public IFeedbackRepository Feedbacks { get; }
         public IClaimRepository Claims { get; }
         public IUserRepository Users { get; }
 

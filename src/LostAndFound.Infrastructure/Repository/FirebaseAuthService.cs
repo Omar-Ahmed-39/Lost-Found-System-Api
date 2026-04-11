@@ -1,5 +1,7 @@
 using FirebaseAdmin.Auth;
+using LostAndFound.Core.Entities;
 using LostAndFound.Core.Interfaces;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -10,12 +12,14 @@ public class FirebaseAuthService : IAuthenticationService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IJwtProvider _jwtProvider;
     private readonly ILogger<FirebaseAuthService> _logger;
+    private readonly UserManager<User> _userManager;
 
-    public FirebaseAuthService(IUnitOfWork unitOfWork, IJwtProvider jwtProvider, ILogger<FirebaseAuthService> logger)
+    public FirebaseAuthService(IUnitOfWork unitOfWork, IJwtProvider jwtProvider, ILogger<FirebaseAuthService> logger, UserManager<User> userManager)
     {
         _unitOfWork = unitOfWork;
         _jwtProvider = jwtProvider;
         _logger = logger;
+        _userManager = userManager;
     }
 
     public async Task<(string Token, string RefreshToken)?> LoginAsync(string email, string credential, string? fcmToken)
@@ -39,12 +43,11 @@ public class FirebaseAuthService : IAuthenticationService
         }
         catch (Exception ex)
         {
-            // Transient / network errors — do NOT convert to UnauthorizedAccess, let global middleware return 503.
             _logger.LogError(ex, "Unexpected error communicating with Firebase for email: {Email}", email);
             throw;
         }
 
-        // 2. Cross-check the email claim against the provided email to prevent token substitution attacks.
+        // 2. Cross-check the email claim against the provided email.
         var tokenEmail = decodedToken.Claims.TryGetValue("email", out var emailClaim)
             ? emailClaim?.ToString()
             : null;
@@ -52,26 +55,33 @@ public class FirebaseAuthService : IAuthenticationService
         if (string.IsNullOrEmpty(tokenEmail) || !string.Equals(tokenEmail, email, StringComparison.OrdinalIgnoreCase))
             throw new UnauthorizedAccessException("Email in token does not match the provided email.");
 
-        // 3. Sync Firebase user to local DB (idempotent, with race-condition guard).
+        // 3. Sync Firebase user to local DB
         User? user;
         try
         {
-            user = await _unitOfWork.Users.GetAsync(u => u.Email == email, true);
+            user = await _userManager.FindByEmailAsync(email);
             var shouldSave = false;
 
             if (user is null)
             {
                 user = new User
                 {
+                    UserName = email,
                     Email = email,
                     Name = decodedToken.Claims.TryGetValue("name", out var nameClaim)
                            ? nameClaim?.ToString() ?? string.Empty
                            : string.Empty,
                     IsActive = true,
-                    FcmToken = fcmToken
+                    FcmToken = fcmToken,
+                    Created = DateTime.UtcNow
                 };
-                await _unitOfWork.Users.AddAsync(user);
-                shouldSave = true;
+                
+                var createResult = await _userManager.CreateAsync(user);
+                if (createResult.Succeeded)
+                {
+                    await _userManager.AddToRoleAsync(user, "User");
+                }
+                shouldSave = false;
             }
             else if (fcmToken != null && user.FcmToken != fcmToken)
             {
@@ -81,29 +91,27 @@ public class FirebaseAuthService : IAuthenticationService
 
             if (shouldSave)
             {
-                await _unitOfWork.SaveAsync();
+                await _userManager.UpdateAsync(user);
             }
         }
         catch (DbUpdateException)
         {
-            // Two concurrent first-logins raced — the duplicate insert lost. Re-fetch the winner's record.
-            _logger.LogWarning("Race condition on first-login sync for email: {Email}. Re-fetching user.", email);
-            user = await _unitOfWork.Users.GetAsync(u => u.Email == email, true)
+            user = await _userManager.FindByEmailAsync(email)
                    ?? throw new UnauthorizedAccessException("Could not resolve user after concurrent insert conflict.");
 
             if (fcmToken != null && user.FcmToken != fcmToken)
             {
                 user.FcmToken = fcmToken;
-                await _unitOfWork.SaveAsync();
+                await _userManager.UpdateAsync(user);
             }
         }
 
-        // 4. Guard: deactivated users must not receive new tokens, even with a valid Firebase token.
+        // 4. Guard deactivated users
         if (!user.IsActive)
             throw new UnauthorizedAccessException("This account has been deactivated. Please contact support.");
 
-        // 5. Resolve real roles from local DB; fall back to "User" for brand-new accounts.
-        var roles = await _unitOfWork.Users.GetRolesAsync(user.Id);
+        // 5. Resolve roles
+        var roles = await _userManager.GetRolesAsync(user);
         if (roles.Count == 0)
             roles = new List<string> { "User" };
 
@@ -113,11 +121,11 @@ public class FirebaseAuthService : IAuthenticationService
 
     public async Task<bool> RevokeTokenAndLogoutAsync(int userId)
     {
-        var user = await _unitOfWork.Users.GetAsync(u => u.Id == userId, true);
+        var user = await _userManager.FindByIdAsync(userId.ToString());
         if (user != null)
         {
             user.FcmToken = null;
-            await _unitOfWork.SaveAsync();
+            await _userManager.UpdateAsync(user);
             return true;
         }
         return false;
@@ -125,10 +133,7 @@ public class FirebaseAuthService : IAuthenticationService
 
     public Task<bool> RegisterAsync(User user, string password)
     {
-        // Firebase manages registration on the client side via the Firebase client SDK.
-        throw new NotSupportedException(
-            "Registration is managed by the Firebase client SDK. " +
-            "The local user record is created automatically on the first LoginAsync call.");
+        throw new NotSupportedException("Registration is managed by the Firebase client SDK.");
     }
 
     public Task<(string Token, string RefreshToken)?> RefreshTokenAsync(string token, string refreshToken)
