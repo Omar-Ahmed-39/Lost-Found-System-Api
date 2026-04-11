@@ -57,7 +57,6 @@ public static class ApiRoutes
         public const string ChangeStatus = Base + "/admin/reports/{id}/status";
         public const string ChangeReportType = Base + "/admin/reports/{id}/type";
     }
-
     public static class Claims
     {
         public const string GetAll = Base + "/admin/claims";
