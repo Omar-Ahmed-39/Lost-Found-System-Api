@@ -9,12 +9,17 @@ public class ApiPagedResponse<T> : ApiResponse<T>
 
     public ApiPagedResponse(T data, int pageNumber, int pageSize, int totalRecords, string? message = null)
     {
+        if (pageSize <= 0)
+            throw new ArgumentOutOfRangeException(nameof(pageSize), "Page size must be greater than zero.");
+        if (pageNumber <= 0)
+            throw new ArgumentOutOfRangeException(nameof(pageNumber), "Page number must be greater than zero.");
+
         Succeeded = true;
         Data = data;
-        Message = message ?? "Data Fetched Successfully .";
+        Message = message ?? "Data fetched successfully.";
         PageNumber = pageNumber;
         PageSize = pageSize;
-        TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
         TotalRecords = totalRecords;
+        TotalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
     }
 }

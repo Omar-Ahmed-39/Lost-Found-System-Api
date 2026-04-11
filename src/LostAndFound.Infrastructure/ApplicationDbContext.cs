@@ -1,14 +1,15 @@
-﻿namespace LostAndFound.Infrastructure;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
-public class ApplicationDbContext : DbContext
+namespace LostAndFound.Infrastructure;
+
+public class ApplicationDbContext : IdentityDbContext<User, Role, int>
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {
     }
 
     // DbSet
-    public DbSet<User> Users { get; set; } = default!;
-    public DbSet<Role> Roles { get; set; } = default!;
     public DbSet<ItemReport> ItemReports { get; set; } = default!;
     public DbSet<Category> Categories { get; set; } = default!;
     public DbSet<Location> Locations { get; set; } = default!;
@@ -24,7 +25,16 @@ public class ApplicationDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);    
 
+        // Rename ASP.NET Identity tables
+        modelBuilder.Entity<User>().ToTable("Users");
+        modelBuilder.Entity<Role>().ToTable("Roles");
+        modelBuilder.Entity<IdentityUserRole<int>>().ToTable("UserRoles");
+        modelBuilder.Entity<IdentityUserClaim<int>>().ToTable("UserClaims");
+        modelBuilder.Entity<IdentityUserLogin<int>>().ToTable("UserLogins");
+        modelBuilder.Entity<IdentityRoleClaim<int>>().ToTable("RoleClaims");
+        modelBuilder.Entity<IdentityUserToken<int>>().ToTable("UserTokens");
+
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
     }
 }
