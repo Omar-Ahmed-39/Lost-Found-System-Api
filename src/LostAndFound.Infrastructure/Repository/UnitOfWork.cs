@@ -12,7 +12,6 @@ namespace LostAndFound.Infrastructure.Repository
         {
             _context = context;
 
-            Users = new UserRepository(context);
             Matches = new MatchRepository(context);
             Claims = new ClaimRepository(context);
             ItemReports = new ItemReportRepository(context);
@@ -37,7 +36,6 @@ namespace LostAndFound.Infrastructure.Repository
         public IDashboardRepository Dashboard { get; }
         public IFeedbackRepository Feedbacks { get; }
         public IClaimRepository Claims { get; }
-        public IUserRepository Users { get; }
 
         public void Dispose()
         {
