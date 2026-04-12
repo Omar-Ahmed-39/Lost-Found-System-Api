@@ -116,7 +116,6 @@ public class ReportsController : BaseController
         var report = new ItemReport
         {
             Id = id,
-            ReportType = dto.ReportType,
             ItemName = dto.ItemName,
             Color = dto.Color,
             ConditionType = dto.ConditionType,
