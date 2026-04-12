@@ -54,7 +54,7 @@ public class AuditLogFilter : IAsyncActionFilter
                     CreatedAt = DateTime.UtcNow
                 };
 
-                await _unitOfWork.Repository<AuditLog>().AddAsync(auditLog);
+                await _unitOfWork.AuditLogs.AddAsync(auditLog);
                 await _unitOfWork.SaveAsync();
             }
             catch (Exception ex)
