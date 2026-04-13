@@ -71,6 +71,7 @@ public static class ApiRoutes
         public const string Create = Base + "/feedbacks";
         public const string GetMyFeedbacks = Base + "/feedbacks/me";
     }
+
     public static class Reports
     {
         public const string GetAll = Base + "/admin/reports";
@@ -82,11 +83,19 @@ public static class ApiRoutes
         public const string ChangeStatus = Base + "/admin/reports/{id}/status";
         public const string ChangeReportType = Base + "/admin/reports/{id}/type";
     }
+
     public static class Claims
     {
         public const string GetAll = Base + "/admin/claims";
         public const string GetById = Base + "/admin/claims/{id}";
         public const string Approve = Base + "/admin/claims/{id}/approve";
         public const string Reject = Base + "/admin/claims/{id}/reject";
+    }
+
+    public static class Handovers
+    {
+        public const string Create = Base + "/admin/handovers";
+        public const string GetById = Base + "/admin/handovers/{id}";
+        public const string GetByClaimId = Base + "/admin/handovers/claim/{claimId}";
     }
 }
