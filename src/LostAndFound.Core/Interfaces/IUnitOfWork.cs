@@ -13,5 +13,6 @@ public interface IUnitOfWork : IDisposable
     IDashboardRepository Dashboard { get; }
     IFeedbackRepository Feedbacks { get; }
     IClaimRepository Claims { get; }
+    IHandoverRepository Handovers { get; }
     Task<int> SaveAsync();
 }
