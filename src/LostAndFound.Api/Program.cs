@@ -18,6 +18,23 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+// Execute Database Seeding
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<LostAndFound.Infrastructure.ApplicationDbContext>();
+        
+        await LostAndFound.Infrastructure.Configurations.ApplicationDbContextSeed.SeedAsync(context);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while seeding the database.");
+    }
+}
+
 // Global exception handling — must be first in the pipeline
 app.UseMiddleware<ExceptionMiddleware>();
 
