@@ -1,8 +1,8 @@
-﻿namespace LostAndFound.Core.Entities;
+namespace LostAndFound.Core.Entities;
 
-public class Department
+public class Department : BaseEntity
 {
-    public int Id { get; set; }
+
     public string Name { get; set; } = string.Empty;
 
     // Foreign key to University
