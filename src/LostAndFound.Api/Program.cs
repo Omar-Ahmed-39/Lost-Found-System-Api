@@ -33,4 +33,12 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+app.MapGet("/test-firebase", () =>
+{
+    var firebaseApp = FirebaseAdmin.FirebaseApp.DefaultInstance;
+    return firebaseApp != null 
+        ? Results.Ok(new { Message = "Firebase initialized successfully!", AppName = firebaseApp.Name }) 
+        : Results.Problem("Firebase not initialized.");
+});
+
 app.Run();

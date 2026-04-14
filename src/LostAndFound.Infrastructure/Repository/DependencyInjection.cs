@@ -69,6 +69,27 @@ public static class DependencyInjection
             }
         );
 
+        // ── Firebase Initialization (Notifications, Auth, etc) ───────────────
+        if (FirebaseApp.DefaultInstance == null)
+        {
+            var serviceAccountPath = configuration["Firebase:ServiceAccountPath"]
+                ?? throw new InvalidOperationException(
+                    "Firebase:ServiceAccountPath is missing. Set it via an environment variable or user secrets.");
+
+            // Path is relative to the directory where the application runs
+            var fullPath = Path.Combine(AppContext.BaseDirectory, serviceAccountPath);
+            if (!File.Exists(fullPath))
+            {
+                // Fallback for development where it runs from project root
+                fullPath = serviceAccountPath;
+            }
+
+            FirebaseApp.Create(new AppOptions
+            {
+                Credential = GoogleCredential.FromFile(fullPath)
+            });
+        }
+
         // ── Authentication Strategy Selection ────────────────────────────────
         var authProvider = configuration["AuthenticationSettings:Provider"];
 
