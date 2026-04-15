@@ -131,7 +131,7 @@ public class FirebaseAuthService : IAuthenticationService
         return false;
     }
 
-    public Task<bool> RegisterAsync(User user, string password)
+    public Task<IdentityResult> RegisterAsync(User user, string password)
     {
         throw new NotSupportedException("Registration is managed by the Firebase client SDK.");
     }
@@ -141,7 +141,7 @@ public class FirebaseAuthService : IAuthenticationService
         throw new NotSupportedException("Refresh tokens are handled by the Firebase client SDK.");
     }
 
-    public Task<bool> ChangePasswordAsync(int userId, string currentPassword, string newPassword)
+    public Task<IdentityResult> ChangePasswordAsync(int userId, string currentPassword, string newPassword)
     {
         throw new NotSupportedException("Password changes are managed by the Firebase client SDK.");
     }
