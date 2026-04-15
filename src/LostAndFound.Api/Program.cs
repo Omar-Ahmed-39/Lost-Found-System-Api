@@ -1,8 +1,10 @@
 using LostAndFound.Api.Extensions;
 using LostAndFound.Api.Middlewares;
+using LostAndFound.Core.Entities;
 using LostAndFound.Core.Features.Matches.Commands;
 using LostAndFound.Infrastructure.Repository;
 using MediatR;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,8 +27,10 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = services.GetRequiredService<LostAndFound.Infrastructure.ApplicationDbContext>();
-        
-        await LostAndFound.Infrastructure.Configurations.ApplicationDbContextSeed.SeedAsync(context);
+        var userManager = services.GetRequiredService<UserManager<User>>();
+        var roleManager = services.GetRequiredService<RoleManager<Role>>();
+
+        await LostAndFound.Infrastructure.Configurations.ApplicationDbContextSeed.SeedAsync(context, userManager, roleManager);
     }
     catch (Exception ex)
     {
@@ -53,8 +57,8 @@ app.MapControllers();
 app.MapGet("/test-firebase", () =>
 {
     var firebaseApp = FirebaseAdmin.FirebaseApp.DefaultInstance;
-    return firebaseApp != null 
-        ? Results.Ok(new { Message = "Firebase initialized successfully!", AppName = firebaseApp.Name }) 
+    return firebaseApp != null
+        ? Results.Ok(new { Message = "Firebase initialized successfully!", AppName = firebaseApp.Name })
         : Results.Problem("Firebase not initialized.");
 });
 
