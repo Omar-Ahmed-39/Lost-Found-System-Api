@@ -21,6 +21,7 @@ public class ApplicationDbContext : IdentityDbContext<User, Role, int>
     public DbSet<Notification> Notifications { get; set; } = default!;
     public DbSet<ItemAttachment> ItemAttachments { get; set; } = default!;
     public DbSet<Feedback> Feedbacks { get; set; } = default!;
+    public DbSet<AuditLog> AuditLogs { get; set; } = default!;
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

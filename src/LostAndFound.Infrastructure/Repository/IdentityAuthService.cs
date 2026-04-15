@@ -5,7 +5,7 @@ using System.Text;
 using LostAndFound.Core.Entities;
 using LostAndFound.Core.Interfaces;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace LostAndFound.Infrastructure.Repository;
@@ -15,18 +15,18 @@ public class IdentityAuthService : IAuthenticationService
     private readonly UserManager<User> _userManager;
     private readonly RoleManager<Role> _roleManager;
     private readonly IJwtProvider _jwtProvider;
-    private readonly IConfiguration _configuration;
+    private readonly JwtOptions _jwtOptions;
 
     public IdentityAuthService(
         UserManager<User> userManager,
         RoleManager<Role> roleManager,
         IJwtProvider jwtProvider,
-        IConfiguration configuration)
+        IOptions<JwtOptions> jwtOptions)
     {
         _userManager = userManager;
         _roleManager = roleManager;
         _jwtProvider = jwtProvider;
-        _configuration = configuration;
+        _jwtOptions = jwtOptions.Value;
     }
 
     public async Task<(string Token, string RefreshToken)?> LoginAsync(string email, string credential, string? fcmToken)
@@ -48,23 +48,25 @@ public class IdentityAuthService : IAuthenticationService
         return await GenerateTokensAsync(user);
     }
 
-    public async Task<bool> RegisterAsync(User user, string password)
+    public async Task<IdentityResult> RegisterAsync(User user, string password)
     {
-        var result = await _userManager.CreateAsync(user, password);
-        if (!result.Succeeded) return false;
+        // Internal Identity requirement: ensure UserName is set to Email.
+        user.UserName = user.Email;
 
-        if (!await _roleManager.RoleExistsAsync("Student"))
+        var result = await _userManager.CreateAsync(user, password);
+        if (!result.Succeeded) return result;
+
+        if (!await _roleManager.RoleExistsAsync("User"))
         {
-            await _roleManager.CreateAsync(new Role { Name = "Student" });
+            await _roleManager.CreateAsync(new Role { Name = "User" });
         }
 
-        await _userManager.AddToRoleAsync(user, "Student");
-        return true;
+        await _userManager.AddToRoleAsync(user, "User");
+        return IdentityResult.Success;
     }
 
     public async Task<(string Token, string RefreshToken)?> RefreshTokenAsync(string token, string refreshToken)
     {
-
         var handler = new JwtSecurityTokenHandler();
 
         ClaimsPrincipal principal;
@@ -76,10 +78,10 @@ public class IdentityAuthService : IAuthenticationService
                 ValidateAudience = true,
                 ValidateLifetime = false, // Expired tokens are valid for refresh
                 ValidateIssuerSigningKey = true,
-                ValidIssuer = _configuration["JwtOptions:Issuer"],
-                ValidAudience = _configuration["JwtOptions:Audience"],
+                ValidIssuer = _jwtOptions.Issuer,
+                ValidAudience = _jwtOptions.Audience,
                 IssuerSigningKey = new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(_configuration["JwtOptions:SecretKey"]!))
+                    Encoding.UTF8.GetBytes(_jwtOptions.SecretKey))
             };
 
             principal = handler.ValidateToken(token, validationParams, out _);
@@ -89,10 +91,10 @@ public class IdentityAuthService : IAuthenticationService
             return null; // Invalid signature — reject the request
         }
 
-        var email = principal.FindFirstValue(ClaimTypes.Email);
-        if (email == null) return null;
+        var userIdString = principal.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userIdString == null) return null;
 
-        var user = await _userManager.FindByEmailAsync(email);
+        var user = await _userManager.FindByIdAsync(userIdString);
         if (user == null) return null;
 
         var storedRefreshToken = await _userManager.GetAuthenticationTokenAsync(user, "LostAndFound", "RefreshToken");
@@ -114,13 +116,12 @@ public class IdentityAuthService : IAuthenticationService
         return true;
     }
 
-    public async Task<bool> ChangePasswordAsync(int userId, string currentPassword, string newPassword)
+    public async Task<IdentityResult> ChangePasswordAsync(int userId, string currentPassword, string newPassword)
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());
-        if (user == null) return false;
+        if (user == null) return IdentityResult.Failed(new IdentityError { Description = "User not found." });
 
-        var result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
-        return result.Succeeded;
+        return await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
     }
 
     private async Task<(string Token, string RefreshToken)> GenerateTokensAsync(User user)

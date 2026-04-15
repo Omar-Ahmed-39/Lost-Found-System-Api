@@ -1,13 +1,12 @@
-﻿namespace LostAndFound.Core.Entities;
+namespace LostAndFound.Core.Entities;
 
-public class Match
+public class Match : BaseEntity
 {
-    public int Id { get; private set; }
+
     public double MatchScore { get; private set; }
     public enMatchStatus Status { get; private set; }
     public DateTime MatchDate { get; private set; }
-    public DateTime CreatedAt { get; private set; }
-    public DateTime UpdatedAt { get; private set; }
+
     public string? RejectionReason { get; private set; }
     public int? ReviewedBy { get; private set; }
     public DateTime? ReviewedAt { get; private set; }

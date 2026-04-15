@@ -1,8 +1,8 @@
 namespace LostAndFound.Core.Entities;
 
-public class Feedback
+public class Feedback : BaseEntity
 {
-    public int Id { get; set; }
+
     public string Subject { get; set; } = string.Empty;
     public string Message { get; set; } = string.Empty;
     public int Rating { get; set; }

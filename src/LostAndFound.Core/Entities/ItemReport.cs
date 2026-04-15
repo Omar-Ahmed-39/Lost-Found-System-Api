@@ -1,8 +1,8 @@
-﻿namespace LostAndFound.Core.Entities;
+namespace LostAndFound.Core.Entities;
 
-public class ItemReport
+public class ItemReport : BaseEntity
 {
-    public int Id { get; set; }
+
     public enReportType ReportType { get; set; }
     public string ItemName { get; set; } = string.Empty;
     public string Color { get; set; } = string.Empty;
@@ -11,8 +11,7 @@ public class ItemReport
     public DateTime DateReported { get; set; }
     public string Description { get; set; } = string.Empty;
     public string AdminNotes { get; set; } = string.Empty;
-    public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
+
 
     //Foreign key
     public int UserId { get; set; }

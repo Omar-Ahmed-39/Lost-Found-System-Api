@@ -1,8 +1,8 @@
-﻿namespace LostAndFound.Core.Entities;
+namespace LostAndFound.Core.Entities;
 
-public class Handover
+public class Handover : BaseEntity
 {
-    public int Id { get; set; }
+
     public enIdType IdType { get; set; }
     public string IdNumber { get; set; } = string.Empty;
     public string ImagePath { get; set; } = string.Empty;

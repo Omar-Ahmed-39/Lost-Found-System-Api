@@ -88,7 +88,7 @@ public class MatchesController : BaseController
         Status = match.Status,
         MatchDate = match.MatchDate,
         CreatedAt = match.CreatedAt,
-        UpdatedAt = match.UpdatedAt,
+        UpdatedAt = match.UpdatedAt ?? match.CreatedAt,
         RejectionReason = match.RejectionReason,
         ReviewedBy = match.ReviewedBy,
         ReviewedAt = match.ReviewedAt,

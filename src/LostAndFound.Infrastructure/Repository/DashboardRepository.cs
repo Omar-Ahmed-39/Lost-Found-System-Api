@@ -151,7 +151,7 @@ public class DashboardRepository : IDashboardRepository
                 Action = "Claim approved",
                 Details = $"{c.User.Name} • {c.Report.ItemName}",
                 Status = "Approved",
-                TimeAgo = CalculateTimeAgo(c.UpdatedAt)
+                TimeAgo = CalculateTimeAgo(c.UpdatedAt ?? c.CreatedAt)
             })
             .ToListAsync();
 

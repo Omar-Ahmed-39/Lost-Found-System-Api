@@ -17,11 +17,11 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
         // ── Database ─────────────────────────────────────────────────────────
-        services.AddSingleton<AuditInterceptor>();
+        services.AddScoped<AuditableEntityInterceptor>();
         services.AddDbContext<ApplicationDbContext>((sp, options) =>
         {
-            options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
-            options.AddInterceptors(sp.GetRequiredService<AuditInterceptor>());
+            var interceptor = sp.GetRequiredService<AuditableEntityInterceptor>();
+            options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")).AddInterceptors(interceptor);
         });
 
         // ── Unit of Work & Repositories ───────────────────────────────────────

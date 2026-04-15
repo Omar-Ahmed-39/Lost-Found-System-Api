@@ -4,6 +4,7 @@ using LostAndFound.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LostAndFound.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260414080118_add-auditing-and-log")]
+    partial class addauditingandlog
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,45 +24,6 @@ namespace LostAndFound.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("LostAndFound.Core.Entities.AuditLog", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Action")
-                        .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("nvarchar(300)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("IpAddress")
-                        .IsRequired()
-                        .HasMaxLength(45)
-                        .HasColumnType("nvarchar(45)");
-
-                    b.Property<string>("Target")
-                        .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("nvarchar(300)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("AuditLogs", (string)null);
-                });
 
             modelBuilder.Entity("LostAndFound.Core.Entities.Category", b =>
                 {
@@ -732,15 +696,6 @@ namespace LostAndFound.Infrastructure.Migrations
                     b.ToTable("UserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("LostAndFound.Core.Entities.AuditLog", b =>
-                {
-                    b.HasOne("LostAndFound.Core.Entities.User", "User")
-                        .WithMany("AuditLogs")
-                        .HasForeignKey("UserId");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("LostAndFound.Core.Entities.Claim", b =>
                 {
                     b.HasOne("LostAndFound.Core.Entities.ItemReport", "Report")
@@ -774,7 +729,7 @@ namespace LostAndFound.Infrastructure.Migrations
             modelBuilder.Entity("LostAndFound.Core.Entities.Feedback", b =>
                 {
                     b.HasOne("LostAndFound.Core.Entities.User", "User")
-                        .WithMany("Feedbacks")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -995,11 +950,7 @@ namespace LostAndFound.Infrastructure.Migrations
 
             modelBuilder.Entity("LostAndFound.Core.Entities.User", b =>
                 {
-                    b.Navigation("AuditLogs");
-
                     b.Navigation("Claims");
-
-                    b.Navigation("Feedbacks");
 
                     b.Navigation("HandledBy");
 

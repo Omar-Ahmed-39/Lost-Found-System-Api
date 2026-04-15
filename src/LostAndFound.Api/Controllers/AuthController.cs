@@ -45,14 +45,18 @@ public class AuthController : BaseController
         {
             Name = request.Name,
             Email = request.Email,
+            UserName = request.Email, // Identity requires UserName
             IsActive = true,
             Created = DateTime.UtcNow
         };
 
-        var success = await _authService.RegisterAsync(user, request.Password);
+        var result = await _authService.RegisterAsync(user, request.Password);
 
-        if (!success)
-            return Error("Registration failed. The email may already be in use.");
+        if (!result.Succeeded)
+        {
+            var errors = result.Errors.Select(e => e.Description).ToList();
+            return Error(errors, StatusCodes.Status400BadRequest);
+        }
 
         return Created<object>(null!, "Account created successfully.");
     }
