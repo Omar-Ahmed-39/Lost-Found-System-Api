@@ -1,89 +1,136 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using LostAndFound.Core.Entities;
+using LostAndFound.Core.Enums;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace LostAndFound.Infrastructure.Configurations;
 
 public static class ApplicationDbContextSeed
 {
-    public static async Task SeedAsync(ApplicationDbContext context)
+    public static async Task SeedAsync(ApplicationDbContext context, UserManager<User> userManager, RoleManager<Role> roleManager)
     {
-        if (!await context.Users.AnyAsync())
+        // 1. Seed Roles
+        string[] roleNames = { "SuperAdmin", "Admin", "User" };
+        foreach (var roleName in roleNames)
         {
-            await context.Users.AddRangeAsync(
-                new User { UserName = "admin", Email = "admin@university.edu", Name = "System Admin" },
-                new User { UserName = "jdoe", Email = "jdoe@university.edu", Name = "John Doe" },
-                new User { UserName = "msmith", Email = "msmith@university.edu", Name = "Mary Smith" }
-            );
+            if (!await roleManager.RoleExistsAsync(roleName))
+            {
+                await roleManager.CreateAsync(new Role { Name = roleName });
+            }
+        }
+
+        // 2. Seed SuperAdmin User
+        var superAdminEmail = "superadmin@gmail.com";
+        var superAdminUser = await userManager.FindByEmailAsync(superAdminEmail);
+        if (superAdminUser == null)
+        {
+            superAdminUser = new User
+            {
+                UserName = superAdminEmail,
+                Email = superAdminEmail,
+                Name = "Super Admin",
+                IsActive = true,
+                EmailConfirmed = true,
+                Created = DateTime.UtcNow
+            };
+
+            var result = await userManager.CreateAsync(superAdminUser, "SuperAdmin@123");
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(superAdminUser, "SuperAdmin");
+            }
+        }
+
+        // 3. Seed Admin User
+        var adminEmail = "admin@gmail.com";
+        if (await userManager.FindByEmailAsync(adminEmail) == null)
+        {
+            var adminUser = new User
+            {
+                UserName = adminEmail,
+                Email = adminEmail,
+                Name = "System Admin",
+                IsActive = true,
+                EmailConfirmed = true,
+                Created = DateTime.UtcNow
+            };
+
+            var result = await userManager.CreateAsync(adminUser, "Admin@123");
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(adminUser, "Admin");
+            }
+        }
+
+        // 4. Seed University & Departments
+        if (!await context.Universities.AnyAsync())
+        {
+            var university = new University { Name = "Global University", CreatedAt = DateTime.UtcNow };
+            await context.Universities.AddAsync(university);
+            await context.SaveChangesAsync();
+
+            var departments = new List<Department>
+            {
+                new() { Name = "Computer Science", UniversityId = university.Id, CreatedAt = DateTime.UtcNow },
+                new() { Name = "Engineering", UniversityId = university.Id, CreatedAt = DateTime.UtcNow },
+                new() { Name = "Business", UniversityId = university.Id, CreatedAt = DateTime.UtcNow }
+            };
+            await context.Departments.AddRangeAsync(departments);
             await context.SaveChangesAsync();
         }
 
-        if (!await context.Categories.AnyAsync()) 
+        // 5. Seed Categories
+        if (!await context.Categories.AnyAsync())
         {
-            await context.Categories.AddRangeAsync(
-                new Category { Name = "Electronics" },
-                new Category { Name = "Documents" },
-                new Category { Name = "Personal Items" }
-            );
+            var categories = new List<Category>
+            {
+                new() { Name = "Electronics", CreatedAt = DateTime.UtcNow },
+                new() { Name = "Documents", CreatedAt = DateTime.UtcNow },
+                new() { Name = "Keys", CreatedAt = DateTime.UtcNow },
+                new() { Name = "Wallets & Bags", CreatedAt = DateTime.UtcNow },
+                new() { Name = "Books", CreatedAt = DateTime.UtcNow }
+            };
+            await context.Categories.AddRangeAsync(categories);
             await context.SaveChangesAsync();
         }
 
-        if (!await context.Universities.AnyAsync()) 
-        {
-            await context.Universities.AddAsync(new University { Name = "Global University" });
-            await context.SaveChangesAsync();
-        }
-
-        if (!await context.Departments.AnyAsync()) 
-        {
-            var uni = await context.Universities.FirstAsync();
-            await context.Departments.AddAsync(new Department { Name = "General", UniversityId = uni.Id });
-            await context.SaveChangesAsync();
-        }
-
-        if (!await context.Locations.AnyAsync()) 
+        // 6. Seed Locations
+        if (!await context.Locations.AnyAsync())
         {
             var dept = await context.Departments.FirstAsync();
-            await context.Locations.AddRangeAsync(
-                new Location { Name = "Main Library", LocationType = Core.Enums.enLocationType.Library, DepartmentId = dept.Id },
-                new Location { Name = "Student Union", LocationType = Core.Enums.enLocationType.Other, DepartmentId = dept.Id },
-                new Location { Name = "Engineering Building", LocationType = Core.Enums.enLocationType.Classroom, DepartmentId = dept.Id }
-            );
+            var locations = new List<Location>
+            {
+                new() { Name = "Main Gate", LocationType = enLocationType.Other, DepartmentId = dept.Id, CreatedAt = DateTime.UtcNow },
+                new() { Name = "Student Center", LocationType = enLocationType.Other, DepartmentId = dept.Id, CreatedAt = DateTime.UtcNow },
+                new() { Name = "Library", LocationType = enLocationType.Library, DepartmentId = dept.Id, CreatedAt = DateTime.UtcNow }
+            };
+            await context.Locations.AddRangeAsync(locations);
             await context.SaveChangesAsync();
         }
 
-        if (!await context.ItemReports.AnyAsync()) 
+        // 7. Seed initial test User
+        var userEmail = "user@gmail.com";
+        if (await userManager.FindByEmailAsync(userEmail) == null)
         {
-            var user = await context.Users.FirstAsync();
-            var category = await context.Categories.FirstAsync(c => c.Name == "Electronics");
-            var location = await context.Locations.FirstAsync(l => l.Name == "Main Library");
+            var user = new User
+            {
+                UserName = userEmail,
+                Email = userEmail,
+                Name = "Regular User",
+                IsActive = true,
+                EmailConfirmed = true,
+                Created = DateTime.UtcNow
+            };
 
-            await context.ItemReports.AddRangeAsync(
-                new ItemReport 
-                { 
-                    ItemName = "Lost MacBook Pro", 
-                    Description = "Silver MacBook Pro 14-inch left on the second floor.",
-                    UserId = user.Id,
-                    CategoryId = category.Id,
-                    LocationId = location.Id,
-                    DateReported = DateTime.UtcNow.AddDays(-2),
-                    StatusType = Core.Enums.enStatusType.Open,
-                    ReportType = Core.Enums.enReportType.Lost
-                },
-                new ItemReport 
-                { 
-                    ItemName = "Found iPhone 13", 
-                    Description = "Black iPhone with a red case found near the entrance.",
-                    UserId = user.Id,
-                    CategoryId = category.Id,
-                    LocationId = location.Id,
-                    DateReported = DateTime.UtcNow.AddDays(-1),
-                    StatusType = Core.Enums.enStatusType.Open,
-                    ReportType = Core.Enums.enReportType.Found
-                }
-            );
-            await context.SaveChangesAsync();
+            var result = await userManager.CreateAsync(user, "User@123");
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(user, "User");
+            }
         }
     }
 }
