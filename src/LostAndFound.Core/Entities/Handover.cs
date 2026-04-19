@@ -18,7 +18,7 @@ public class Handover : BaseEntity
     // Navigation properties
     public Location Location { get; set; } = default!;
     public User ReceiverUser { get; set; } = default!;
-    public User GivenByUser { get; set; } = default!;
+    public User HandedByUser { get; set; } = default!;
     public Claim Claim { get; set; } = default!;
 
 }
