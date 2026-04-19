@@ -1,0 +1,26 @@
+services:
+  db: 
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: lostAndFoundDb
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=SuperSecretP@ssw0rd!
+    ports:
+      - "2020:1433"
+    volumes:
+      - sql_data:/var/opt/mssql
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lostAndFoundApi
+    ports:
+      - "8080:8080" 
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=db;Database=LostAndFoundDb;User Id=sa;Password=SuperSecretP@ssw0rd!;TrustServerCertificate=True;
+    depends_on:
+      - db
+  
+volumes:
+  sql_data:
