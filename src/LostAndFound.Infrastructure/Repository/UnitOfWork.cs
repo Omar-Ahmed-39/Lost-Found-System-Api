@@ -24,6 +24,7 @@ namespace LostAndFound.Infrastructure.Repository
             Departments = new GenericRepository<Department>(context);
             Feedbacks = new FeedbackRepository(context);
             AuditLogs = new GenericRepository<AuditLog>(context);
+            Handovers = new HandoverRepository(context);
         }
 
         public IGenericRepository<Location> Locations { get; }
@@ -38,6 +39,7 @@ namespace LostAndFound.Infrastructure.Repository
         public IFeedbackRepository Feedbacks { get; }
         public IClaimRepository Claims { get; }
         public IGenericRepository<AuditLog> AuditLogs { get; }
+        public IHandoverRepository Handovers { get; }
 
         public void Dispose()
         {
