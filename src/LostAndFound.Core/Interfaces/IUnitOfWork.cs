@@ -14,5 +14,6 @@ public interface IUnitOfWork : IDisposable
     IFeedbackRepository Feedbacks { get; }
     IClaimRepository Claims { get; }
     IGenericRepository<AuditLog> AuditLogs { get; }
+    IHandoverRepository Handovers { get; }
     Task<int> SaveAsync();
 }
