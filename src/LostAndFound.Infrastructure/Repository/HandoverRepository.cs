@@ -11,16 +11,37 @@ public class HandoverRepository : GenericRepository<Handover>, IHandoverReposito
         _context = context;
     }
 
-    public async Task<bool> CompleteHandoverAsync(
-        int claimId,
-        Handover handoverData,
-        int adminId)
+    public async Task<Handover?> GetDetailsAsync(int id)
     {
-        using var transaction = await _context.Database.BeginTransactionAsync();
+        return await _context.Handovers
+            .Include(h => h.Location)
+            .Include(h => h.ReceiverUser)
+            .Include(h => h.HandedByUser)
+            .Include(h => h.Claim)
+            .FirstOrDefaultAsync(h => h.Id == id);
+    }
+
+    public async Task<Handover?> GetByClaimIdAsync(int claimId)
+    {
+        return await _context.Handovers
+            .Include(h => h.Location)
+            .Include(h => h.ReceiverUser)
+            .Include(h => h.HandedByUser)
+            .Include(h => h.Claim)
+            .FirstOrDefaultAsync(h => h.ClaimId == claimId);
+    }
+
+    public async Task<bool> CreateHandoverAsync(Handover handover, int adminUserId)
+    {
+        if (handover.LocationId <= 0 || handover.ReceiverUserId <= 0 || handover.ClaimId <= 0)
+            return false;
+
+        if (string.IsNullOrWhiteSpace(handover.IdNumber))
+            return false;
 
         var claim = await _context.Claims
             .Include(c => c.Report)
-            .FirstOrDefaultAsync(c => c.Id == claimId);
+            .FirstOrDefaultAsync(c => c.Id == handover.ClaimId);
 
         if (claim == null)
             return false;
@@ -28,46 +49,32 @@ public class HandoverRepository : GenericRepository<Handover>, IHandoverReposito
         if (claim.ApprovalStatus != enApprovalStatus.Approved)
             return false;
 
-        if (claim.Report.StatusType != enStatusType.Open)
+        if (claim.Report == null)
             return false;
 
-        // Create Handover
-        handoverData.ClaimId = claim.Id;
-        handoverData.HandoverDate = DateTime.UtcNow;
+        if (claim.UserId != handover.ReceiverUserId)
+            return false;
 
-        await _context.Handovers.AddAsync(handoverData);
+        var exists = await _context.Handovers
+            .AnyAsync(h => h.ClaimId == handover.ClaimId);
 
-        // Update Claim status to Completed
+        if (exists)
+            return false;
+
+        if (handover.HandoverDate == default)
+            handover.HandoverDate = DateTime.UtcNow;
+
+        handover.HandedByUserId = adminUserId;
+        handover.CreatedAt = DateTime.UtcNow;
+        handover.UpdatedAt = DateTime.UtcNow;
+
+        await _context.Handovers.AddAsync(handover);
+
         claim.ApprovalStatus = enApprovalStatus.Completed;
+        claim.UpdatedAt = DateTime.UtcNow;
 
-        // Update Report status to Closed
-        claim.Report.StatusType = enStatusType.Closed;
-
-        // Reject other pending claims for the same report
-        var otherClaims = await _context.Claims
-            .Where(c =>
-                c.ReportId == claim.ReportId &&
-                c.Id != claim.Id &&
-                c.ApprovalStatus == enApprovalStatus.Pending)
-            .ToListAsync();
-
-        foreach (var other in otherClaims)
-        {
-            other.ApprovalStatus = enApprovalStatus.Rejected;
-        }
-
-        // Remove any matches related to the report
-        await _context.Matches
-            .Where(m =>
-                m.LostId == claim.ReportId ||
-                m.FoundId == claim.ReportId)
-            .ExecuteDeleteAsync();
-
-        // ✅ SaveChangesAsync is justified here: this method owns an explicit DB transaction
-        //    that spans multiple writes (Handover, Claim, Report, other Claims, Matches).
-        //    Callers must NOT call _unitOfWork.SaveAsync() after this — it's already committed.
-        await _context.SaveChangesAsync();
-        await transaction.CommitAsync();
+        claim.Report.StatusType = enStatusType.Returned;
+        claim.Report.UpdatedAt = DateTime.UtcNow;
 
         return true;
     }
