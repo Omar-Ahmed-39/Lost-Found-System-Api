@@ -5,9 +5,8 @@ using LostAndFound.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace LostAndFound.Api.Controllers.Admin;
+namespace LostAndFound.Api.Controllers;
 
-[Authorize(Roles = "Admin,SuperAdmin")]
 public class ClaimsController : BaseController
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -17,6 +16,11 @@ public class ClaimsController : BaseController
         _unitOfWork = unitOfWork;
     }
 
+    // =========================
+    // Admin Endpoints
+    // =========================
+
+    [Authorize(Roles = "Admin,SuperAdmin")]
     [HttpGet(ApiRoutes.Claims.GetAll)]
     public async Task<IActionResult> GetAll(
         [FromQuery] string? search,
@@ -57,6 +61,7 @@ public class ClaimsController : BaseController
         return Paged(response, pageNumber, pageSize, result.TotalCount);
     }
 
+    [Authorize(Roles = "Admin,SuperAdmin")]
     [HttpGet(ApiRoutes.Claims.GetById)]
     public async Task<IActionResult> GetById([FromRoute] int id)
     {
@@ -86,19 +91,19 @@ public class ClaimsController : BaseController
         return Success(response);
     }
 
+    [Authorize(Roles = "Admin,SuperAdmin")]
     [HttpPut(ApiRoutes.Claims.Approve)]
     public async Task<IActionResult> Approve([FromRoute] int id)
     {
         var approved = await _unitOfWork.Claims.ApproveClaimAsync(id, GetUserId());
-
         if (!approved)
             return Error("Failed to approve claim.", 400);
 
         await _unitOfWork.SaveAsync();
-
         return Success(true, "Claim approved successfully.");
     }
 
+    [Authorize(Roles = "Admin,SuperAdmin")]
     [HttpPut(ApiRoutes.Claims.Reject)]
     public async Task<IActionResult> Reject([FromRoute] int id, [FromBody] RejectClaimDto dto)
     {
@@ -106,12 +111,26 @@ public class ClaimsController : BaseController
             return Error("Remarks are required.");
 
         var rejected = await _unitOfWork.Claims.RejectClaimAsync(id, dto.Remarks, GetUserId());
-
         if (!rejected)
             return Error("Failed to reject claim.", 400);
 
         await _unitOfWork.SaveAsync();
-
         return Success(true, "Claim rejected successfully.");
+    }
+
+    // =========================
+    // User / App Endpoints
+    // =========================
+
+    [Authorize]
+    [HttpPost(ApiRoutes.Claims.Create)]
+    public async Task<IActionResult> Create([FromBody] CreateClaimDto dto)
+    {
+        var created = await _unitOfWork.Claims.CreateClaimAsync(dto.ReportId, GetUserId());
+        if (!created)
+            return Error("Failed to create claim.", 400);
+
+        await _unitOfWork.SaveAsync();
+        return Success(true, "Claim submitted successfully.");
     }
 }

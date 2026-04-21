@@ -90,6 +90,12 @@ public static class ApiRoutes
     }
     public static class Claims
     {
+        // User / App
+        public const string Create = Base + "/claims";
+        public const string GetMyClaims = Base + "/claims/me";
+        public const string Cancel = Base + "/claims/{id}/cancel";
+
+        // Admin
         public const string GetAll = Base + "/admin/claims";
         public const string GetById = Base + "/admin/claims/{id}";
         public const string Approve = Base + "/admin/claims/{id}/approve";

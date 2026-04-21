@@ -21,4 +21,6 @@ public interface IClaimRepository : IGenericRepository<Claim>
     Task<IEnumerable<Claim>> GetUserClaimsAsync(int userId);
 
     Task<double?> GetMatchScoreForClaimAsync(int claimId);
+
+    Task<bool> CreateClaimAsync(int reportId, int userId);
 }
