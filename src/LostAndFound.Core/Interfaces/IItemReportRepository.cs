@@ -7,9 +7,7 @@ namespace LostAndFound.Core.Interfaces;
 public interface IItemReportRepository : IGenericRepository<ItemReport>
 {
     Task<(IEnumerable<ItemReport> Items, int TotalCount)> GetFilteredAsync(
-        ItemReportFilter filter,
-        int pageNumber,
-        int pageSize);
+    ItemReportFilter filter, int pageNumber, int pageSize, bool isAdmin = false);
 
     Task<ItemReport?> GetDetailsAsync(int reportId);
 

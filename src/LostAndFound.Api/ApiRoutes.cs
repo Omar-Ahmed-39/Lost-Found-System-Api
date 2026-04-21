@@ -73,12 +73,18 @@ public static class ApiRoutes
     }
     public static class Reports
     {
-        public const string GetAll = Base + "/admin/reports";
-        public const string GetById = Base + "/admin/reports/{id}";
-        public const string Create = Base + "/admin/reports";
-        public const string Update = Base + "/admin/reports/{id}";
+        // User / App
+        public const string GetAll = Base + "/reports";
+        public const string GetById = Base + "/reports/{id}";
+        public const string Create = Base + "/reports";
+        public const string Update = Base + "/reports/{id}";
+        public const string Cancel = Base + "/reports/{id}/cancel";
+        public const string GetMyReports = Base + "/reports/me";
+
+        // Admin
+        public const string GetAllAdmin = Base + "/admin/reports";
+        public const string GetByIdAdmin = Base + "/admin/reports/{id}";
         public const string Delete = Base + "/admin/reports/{id}";
-        public const string Cancel = Base + "/admin/reports/{id}/cancel";
         public const string ChangeStatus = Base + "/admin/reports/{id}/status";
         public const string ChangeReportType = Base + "/admin/reports/{id}/type";
     }

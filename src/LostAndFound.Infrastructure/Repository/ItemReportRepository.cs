@@ -16,9 +16,10 @@ public class ItemReportRepository : GenericRepository<ItemReport>, IItemReportRe
     }
 
     public async Task<(IEnumerable<ItemReport> Items, int TotalCount)> GetFilteredAsync(
-        ItemReportFilter filter,
-        int pageNumber,
-        int pageSize)
+    ItemReportFilter filter,
+    int pageNumber,
+    int pageSize,
+    bool isAdmin = false)
     {
         pageNumber = pageNumber < 1 ? 1 : pageNumber;
         pageSize = pageSize < 1 ? 10 : pageSize;
@@ -29,14 +30,19 @@ public class ItemReportRepository : GenericRepository<ItemReport>, IItemReportRe
             .Include(r => r.User)
             .Include(r => r.Attachments);
 
+        if (!isAdmin)
+        {
+            query = query.Where(r =>
+                r.StatusType == enStatusType.Open ||
+                r.StatusType == enStatusType.UnderReview);
+        }
+
         if (!string.IsNullOrWhiteSpace(filter.Search))
         {
             var search = filter.Search.Trim();
-
             query = query.Where(r =>
                 r.ItemName.Contains(search) ||
                 r.Description.Contains(search) ||
-                r.User.Name.Contains(search) ||
                 r.Category.Name.Contains(search) ||
                 r.Location.Name.Contains(search));
         }
@@ -47,7 +53,7 @@ public class ItemReportRepository : GenericRepository<ItemReport>, IItemReportRe
         if (filter.LocationId.HasValue)
             query = query.Where(r => r.LocationId == filter.LocationId.Value);
 
-        if (filter.StatusType.HasValue)
+        if (filter.StatusType.HasValue && isAdmin)
             query = query.Where(r => r.StatusType == filter.StatusType.Value);
 
         if (filter.ReportType.HasValue)
@@ -92,8 +98,13 @@ public class ItemReportRepository : GenericRepository<ItemReport>, IItemReportRe
         if (!isAdmin && existing.UserId != userId)
             return false;
 
-        if (existing.StatusType == enStatusType.Closed && !isAdmin)
+        if (!isAdmin && (
+            existing.StatusType == enStatusType.Closed ||
+            existing.StatusType == enStatusType.Returned ||
+            existing.StatusType == enStatusType.Canceled))
+        {
             return false;
+        }
 
         existing.ItemName = report.ItemName;
         existing.Color = report.Color;
@@ -177,6 +188,7 @@ public class ItemReportRepository : GenericRepository<ItemReport>, IItemReportRe
         return await _context.ItemReports
             .Include(r => r.Category)
             .Include(r => r.Location)
+            .Include(r => r.Attachments)
             .Where(r => r.UserId == userId)
             .OrderByDescending(r => r.DateReported)
             .ToListAsync();
