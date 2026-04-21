@@ -177,4 +177,43 @@ public class ClaimRepository : GenericRepository<Claim>, IClaimRepository
 
         return match?.MatchScore;
     }
+
+    public async Task<bool> CreateClaimAsync(int reportId, int userId)
+    {
+        if (reportId <= 0)
+            return false;
+
+        var report = await _context.ItemReports
+            .FirstOrDefaultAsync(r => r.Id == reportId);
+
+        if (report == null)
+            return false;
+
+        if (report.StatusType == enStatusType.Closed ||
+            report.StatusType == enStatusType.Returned ||
+            report.StatusType == enStatusType.Canceled)
+            return false;
+
+        if (report.UserId == userId)
+            return false;
+
+        var exists = await _context.Claims
+            .AnyAsync(c => c.ReportId == reportId && c.UserId == userId);
+
+        if (exists)
+            return false;
+
+        var claim = new Claim
+        {
+            ReportId = reportId,
+            UserId = userId,
+            ClaimDate = DateTime.UtcNow,
+            ApprovalStatus = enApprovalStatus.Pending,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        await _context.Claims.AddAsync(claim);
+        return true;
+    }
 }
