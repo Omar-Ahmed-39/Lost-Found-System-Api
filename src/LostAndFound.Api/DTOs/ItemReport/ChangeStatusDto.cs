@@ -1,6 +1,6 @@
 ﻿using LostAndFound.Core.Enums;
 
-namespace LostAndFound.Api.DTOs.ItemReport;
+namespace LostAndFound.Api.DTOs.ItemReports;
 
 public class ChangeStatusDto
 {
