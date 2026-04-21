@@ -88,10 +88,13 @@ public class AuthController : BaseController
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto request)
     {
-        var success = await _authService.ChangePasswordAsync(GetUserId(), request.CurrentPassword, request.NewPassword);
+        var result = await _authService.ChangePasswordAsync(GetUserId(), request.CurrentPassword, request.NewPassword);
 
-        if (!success)
-            return Error("Password change failed. Current password may be incorrect.");
+        if (!result.Succeeded)
+        {
+            var errors = result.Errors.Select(e => e.Description).ToList();
+            return Error(errors, StatusCodes.Status400BadRequest);
+        }
 
         return Success<object>(null!, "Password changed successfully.");
     }

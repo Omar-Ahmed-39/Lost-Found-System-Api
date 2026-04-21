@@ -1,0 +1,34 @@
+# Use the .NET 10 SDK image (required for building and EF CLI)
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS migration-runner
+
+WORKDIR /app
+
+# Install the dotnet-ef tool globally
+RUN dotnet tool install --global dotnet-ef --version 10.0.*
+
+# Add the global tools path to the environment PATH
+ENV PATH="$PATH:/root/.dotnet/tools"
+
+# 1. Copy solution and project files first to cache layers and restore dependencies
+COPY ["LostAndFound.sln", "./"]
+COPY ["src/LostAndFound.Api/LostAndFound.Api.csproj", "src/LostAndFound.Api/"]
+COPY ["src/LostAndFound.Infrastructure/LostAndFound.Infrastructure.csproj", "src/LostAndFound.Infrastructure/"]
+COPY ["src/LostAndFound.Core/LostAndFound.Core.csproj", "src/LostAndFound.Core/"]
+
+# Restore all projects
+RUN dotnet restore "LostAndFound.sln"
+
+# 2. Copy the rest of the source code
+COPY . .
+
+# 3. Build the solution to ensure no build warnings/errors interrupt the EF CLI tool
+RUN dotnet build "LostAndFound.sln" -c Release --no-restore
+
+# 4. Set the EF database update command as the entrypoint
+# We pass the strict connection string directly via command line arg to ensure it works across platforms
+ENTRYPOINT ["dotnet", "ef", "database", "update", \
+    "--project", "src/LostAndFound.Infrastructure/LostAndFound.Infrastructure.csproj", \
+    "--startup-project", "src/LostAndFound.Api/LostAndFound.Api.csproj", \
+    "--no-build", \
+    "--configuration", "Release", \
+    "--connection", "Server=tcp:db,1433;Database=LostAndFoundDb;User Id=sa;Password=SuperSecretP@ssw0rd!;Encrypt=False;TrustServerCertificate=True;"]
