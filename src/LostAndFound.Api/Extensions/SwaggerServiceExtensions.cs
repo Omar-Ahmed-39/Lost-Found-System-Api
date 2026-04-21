@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -20,8 +19,8 @@ public static class SwaggerServiceExtensions
             c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Description = "JWT Authorization header using the Bearer scheme.\r\n\r\n" +
-                              "Enter 'Bearer' [space] and your token in the text input below.\r\n\r\n" +
-                              "Example: \"Bearer eyJhbGci...\"",
+                              "Enter only your JWT token in the text input below.\r\n\r\n" +
+                              "Example: \"eyJhbGci...\"",
                 Name = "Authorization",
                 In = ParameterLocation.Header,
                 Type = SecuritySchemeType.Http,
@@ -29,45 +28,16 @@ public static class SwaggerServiceExtensions
                 BearerFormat = "JWT"
             });
 
-            // Apply the security lock only to endpoints decorated with [Authorize],
-            // skipping any [AllowAnonymous] endpoints (e.g., Login, Register).
-            c.OperationFilter<AuthorizeCheckOperationFilter>();
+            // Apply a valid Bearer requirement reference for generated operations.
+            c.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecuritySchemeReference("Bearer", document, null),
+                    new List<string>()
+                }
+            });
         });
 
         return services;
-    }
-}
-
-/// <summary>
-/// Swagger operation filter that conditionally applies the Bearer security requirement
-/// only to endpoints that have an effective [Authorize] attribute and no [AllowAnonymous].
-/// This prevents the padlock icon from appearing on public endpoints in Swagger UI.
-/// </summary>
-internal sealed class AuthorizeCheckOperationFilter : IOperationFilter
-{
-    public void Apply(OpenApiOperation operation, OperationFilterContext context)
-    {
-        var hasAllowAnonymous = context.ApiDescription.ActionDescriptor.EndpointMetadata
-            .OfType<AllowAnonymousAttribute>()
-            .Any();
-
-        if (hasAllowAnonymous) return;
-
-        var hasAuthorize = context.ApiDescription.ActionDescriptor.EndpointMetadata
-            .OfType<AuthorizeAttribute>()
-            .Any();
-
-        if (!hasAuthorize) return;
-
-        operation.Security = new List<OpenApiSecurityRequirement>
-        {
-            new()
-            {
-                {
-                    new OpenApiSecuritySchemeReference("Bearer", null!, null),
-                    new List<string>()
-                }
-            }
-        };
     }
 }
