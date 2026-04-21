@@ -47,16 +47,15 @@ internal sealed class AuthorizeCheckOperationFilter : IOperationFilter
 {
     public void Apply(OpenApiOperation operation, OperationFilterContext context)
     {
-        var hasAllowAnonymous = context.MethodInfo
-            .GetCustomAttributes(true)
+        var hasAllowAnonymous = context.ApiDescription.ActionDescriptor.EndpointMetadata
             .OfType<AllowAnonymousAttribute>()
             .Any();
 
         if (hasAllowAnonymous) return;
 
-        var hasAuthorize =
-            context.MethodInfo.GetCustomAttributes(true).OfType<AuthorizeAttribute>().Any() ||
-            context.MethodInfo.DeclaringType!.GetCustomAttributes(true).OfType<AuthorizeAttribute>().Any();
+        var hasAuthorize = context.ApiDescription.ActionDescriptor.EndpointMetadata
+            .OfType<AuthorizeAttribute>()
+            .Any();
 
         if (!hasAuthorize) return;
 
