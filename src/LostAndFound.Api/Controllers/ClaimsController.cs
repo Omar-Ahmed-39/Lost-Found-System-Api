@@ -107,10 +107,12 @@ public class ClaimsController : BaseController
     [HttpPut(ApiRoutes.Claims.Reject)]
     public async Task<IActionResult> Reject([FromRoute] int id, [FromBody] RejectClaimDto dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.Remarks))
+        var remarks = dto.Remarks.Trim();
+
+        if (string.IsNullOrWhiteSpace(remarks))
             return Error("Remarks are required.");
 
-        var rejected = await _unitOfWork.Claims.RejectClaimAsync(id, dto.Remarks, GetUserId());
+        var rejected = await _unitOfWork.Claims.RejectClaimAsync(id, remarks, GetUserId());
         if (!rejected)
             return Error("Failed to reject claim.", 400);
 

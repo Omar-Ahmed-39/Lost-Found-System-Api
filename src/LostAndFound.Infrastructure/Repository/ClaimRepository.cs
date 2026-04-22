@@ -105,18 +105,18 @@ public class ClaimRepository : GenericRepository<Claim>, IClaimRepository
     public async Task<bool> RejectClaimAsync(int claimId, string remarks, int adminUserId)
     {
         var claim = await _context.Claims.FindAsync(claimId);
-        if (claim == null)
-            return false;
+        if (claim == null) return false;
 
         if (claim.ApprovalStatus != enApprovalStatus.Pending &&
             claim.ApprovalStatus != enApprovalStatus.Approved)
             return false;
 
-        if (string.IsNullOrWhiteSpace(remarks))
+        var normalizedRemarks = remarks.Trim();
+        if (string.IsNullOrWhiteSpace(normalizedRemarks))
             return false;
 
         claim.ApprovalStatus = enApprovalStatus.Rejected;
-        claim.Remarks = remarks;
+        claim.Remarks = normalizedRemarks;
         claim.UpdatedAt = DateTime.UtcNow;
 
         return true;
