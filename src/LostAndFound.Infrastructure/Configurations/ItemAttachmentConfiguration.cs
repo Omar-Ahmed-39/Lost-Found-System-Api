@@ -12,11 +12,6 @@ public class ItemAttachmentConfiguration : IEntityTypeConfiguration<ItemAttachme
             .IsRequired()
             .HasMaxLength(300);
 
-        builder.Property(x => x.CreatedAt)
-            .IsRequired();
-
-        builder.Property(x => x.UpdatedAt);
-
         // Relationship 
 
         // ItemAttachment -> ItemReport (Many-to-One)

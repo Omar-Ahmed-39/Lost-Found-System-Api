@@ -18,12 +18,6 @@ public class MatchConfiguration : IEntityTypeConfiguration<Match>
         builder.Property(m => m.MatchDate)
             .IsRequired();
 
-        builder.Property(m => m.CreatedAt)
-            .IsRequired();
-
-        builder.Property(m => m.UpdatedAt)
-            .IsRequired();
-
         // Relationships
 
         // Match -> LostItem (many-to-one)
