@@ -145,6 +145,7 @@ public class ClaimRepository : GenericRepository<Claim>, IClaimRepository
     {
         return await _context.Claims
             .Include(c => c.Report)
+            .ThenInclude(r => r.Attachments)
             .Where(c => c.UserId == userId)
             .OrderByDescending(c => c.ClaimDate)
             .ToListAsync();
