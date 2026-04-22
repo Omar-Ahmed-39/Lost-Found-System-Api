@@ -39,8 +39,8 @@ public class HandoverConfiguration : IEntityTypeConfiguration<Handover>
             .HasForeignKey(h => h.ReceiverUserId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // Handover -> Given By User (Many-to-One)
-        builder.HasOne(h => h.GivenByUser)
+        // Handover -> Handed By User (Many-to-One)
+        builder.HasOne(h => h.HandedByUser)
             .WithMany(u => u.HandledBy)
             .HasForeignKey(h => h.HandedByUserId)
             .OnDelete(DeleteBehavior.Restrict);
