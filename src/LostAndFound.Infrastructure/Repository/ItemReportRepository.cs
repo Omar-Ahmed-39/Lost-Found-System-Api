@@ -83,9 +83,6 @@ public class ItemReportRepository : GenericRepository<ItemReport>, IItemReportRe
             .Include(r => r.Location)
             .Include(r => r.User)
             .Include(r => r.Attachments)
-            .Include(r => r.Claims)
-            .Include(r => r.LostMatches)
-            .Include(r => r.FoundMatches)
             .FirstOrDefaultAsync(r => r.Id == reportId);
     }
 
