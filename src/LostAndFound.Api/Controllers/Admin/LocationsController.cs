@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using LostAndFound.Api.DTOs.Locations;
 using LostAndFound.Core.Entities;
 using LostAndFound.Core.Interfaces;
@@ -17,97 +16,148 @@ public class LocationsController : BaseController
         _unitOfWork = unitOfWork;
     }
 
-    /// <summary>Returns all locations.</summary>
     [HttpGet(ApiRoutes.Locations.GetAll)]
-    [ProducesResponseType(typeof(ApiResponse<IEnumerable<LocationResponseDto>>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetAll()
     {
-        var locations = await _unitOfWork.Locations.GetAllAsync();
-        return Success(locations.Select(ToDto));
+        var locations = await _unitOfWork.Locations.GetAllAsync(
+            includes: l => l.Department
+        );
+
+        var response = locations.Select(l => new LocationResponseDto
+        {
+            Id = l.Id,
+            Name = l.Name,
+            LocationType = l.LocationType,
+            DepartmentId = l.DepartmentId,
+            DepartmentName = l.Department.Name
+        });
+
+        return Success(response);
     }
 
-    /// <summary>Returns a single location by ID.</summary>
     [HttpGet(ApiRoutes.Locations.GetById)]
-    [ProducesResponseType(typeof(ApiResponse<LocationResponseDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetById([FromRoute] int id)
     {
-        var location = await _unitOfWork.Locations.FindAsync(id);
-        if (location is null)
-            return Error("Location not found.", StatusCodes.Status404NotFound);
+        var location = await _unitOfWork.Locations.GetAsync(
+            l => l.Id == id,
+            false,
+            l => l.Department
+        );
 
-        return Success(ToDto(location));
+        if (location == null)
+            return Error("Location not found.", 404);
+
+        return Success(new LocationResponseDto
+        {
+            Id = location.Id,
+            Name = location.Name,
+            LocationType = location.LocationType,
+            DepartmentId = location.DepartmentId,
+            DepartmentName = location.Department.Name
+        });
     }
 
-    /// <summary>Creates a new location.</summary>
     [HttpPost(ApiRoutes.Locations.Create)]
-    [ProducesResponseType(typeof(ApiResponse<LocationResponseDto>), StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> Create([FromBody] LocationRequestDto request)
+    public async Task<IActionResult> Create([FromBody] LocationRequestDto dto)
     {
+        var departmentExists = await _unitOfWork.Departments.ExistsAsync(d => d.Id == dto.DepartmentId);
+        if (!departmentExists)
+            return Error("Selected department does not exist.", 400);
+
+        var normalizedName = dto.Name.Trim();
+
+        if (string.IsNullOrWhiteSpace(normalizedName))
+            return Error("Location name is required.", 400);
+
+        var exists = await _unitOfWork.Locations.ExistsAsync(l =>
+            l.Name.ToLower() == normalizedName.ToLower() &&
+            l.DepartmentId == dto.DepartmentId);
+
+        if (exists)
+            return Error("Location already exists in this department.", 400);
+
         var location = new Location
         {
-            Name = request.Name,
-            LocationType = request.LocationType,
-            DepartmentId = request.DepartmentId
+            Name = normalizedName,
+            LocationType = dto.LocationType,
+            DepartmentId = dto.DepartmentId
         };
 
         await _unitOfWork.Locations.AddAsync(location);
         await _unitOfWork.SaveAsync();
 
-        return Created(ToDto(location));
+        var department = await _unitOfWork.Departments.FindAsync(dto.DepartmentId);
+
+        return Created(new LocationResponseDto
+        {
+            Id = location.Id,
+            Name = location.Name,
+            LocationType = location.LocationType,
+            DepartmentId = location.DepartmentId,
+            DepartmentName = department?.Name ?? string.Empty
+        }, "Location created successfully.");
     }
 
-    /// <summary>Updates an existing location.</summary>
     [HttpPut(ApiRoutes.Locations.Update)]
-    [ProducesResponseType(typeof(ApiResponse<LocationResponseDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> Update([FromRoute] int id, [FromBody] LocationRequestDto request)
+    public async Task<IActionResult> Update([FromRoute] int id, [FromBody] LocationRequestDto dto)
     {
         var location = await _unitOfWork.Locations.FindAsync(id);
-        if (location is null)
-            return Error("Location not found.", StatusCodes.Status404NotFound);
+        if (location == null)
+            return Error("Location not found.", 404);
 
-        location.Name = request.Name;
-        location.LocationType = request.LocationType;
-        location.DepartmentId = request.DepartmentId;
+        var departmentExists = await _unitOfWork.Departments.ExistsAsync(d => d.Id == dto.DepartmentId);
+        if (!departmentExists)
+            return Error("Selected department does not exist.", 400);
+
+        var normalizedName = dto.Name.Trim();
+
+        if (string.IsNullOrWhiteSpace(normalizedName))
+            return Error("Location name is required.", 400);
+
+        var exists = await _unitOfWork.Locations.ExistsAsync(l =>
+            l.Name.ToLower() == normalizedName.ToLower() &&
+            l.DepartmentId == dto.DepartmentId &&
+            l.Id != id);
+
+        if (exists)
+            return Error("Location name already exists in this department.", 400);
+
+        location.Name = normalizedName;
+        location.LocationType = dto.LocationType;
+        location.DepartmentId = dto.DepartmentId;
 
         await _unitOfWork.SaveAsync();
-        return Success(ToDto(location));
+
+        var department = await _unitOfWork.Departments.FindAsync(dto.DepartmentId);
+
+        return Success(new LocationResponseDto
+        {
+            Id = location.Id,
+            Name = location.Name,
+            LocationType = location.LocationType,
+            DepartmentId = location.DepartmentId,
+            DepartmentName = department?.Name ?? string.Empty
+        }, "Location updated successfully.");
     }
 
-    /// <summary>Deletes a location by ID.</summary>
     [HttpDelete(ApiRoutes.Locations.Delete)]
-    [ProducesResponseType(typeof(ApiResponse<bool>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> Delete([FromRoute] int id)
     {
         var location = await _unitOfWork.Locations.FindAsync(id);
-        if (location is null)
-            return Error("Location not found.", StatusCodes.Status404NotFound);
+        if (location == null)
+            return Error("Location not found.", 404);
+
+        var hasReports = await _unitOfWork.ItemReports.ExistsAsync(r => r.LocationId == id);
+        if (hasReports)
+            return Error("Cannot delete location because it has related reports.", 400);
+
+        var hasHandovers = await _unitOfWork.Handovers.ExistsAsync(h => h.LocationId == id);
+        if (hasHandovers)
+            return Error("Cannot delete location because it has related handovers.", 400);
 
         _unitOfWork.Locations.Remove(location);
         await _unitOfWork.SaveAsync();
 
         return Success(true, "Location deleted successfully.");
     }
-
-    private static LocationResponseDto ToDto(Location location) => new()
-    {
-        Id = location.Id,
-        Name = location.Name,
-        LocationType = location.LocationType,
-        DepartmentId = location.DepartmentId
-    };
 }

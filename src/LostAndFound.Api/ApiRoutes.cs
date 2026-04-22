@@ -15,18 +15,22 @@ public static class ApiRoutes
         public const string Logout = Base + "/auth/logout";
     }
 
-    public static class Matches
+    public static class Universities
     {
-        public const string GetAll = Base + "/matches";
-        public const string GetPending = Base + "/matches/pending";
-        public const string GetById = Base + "/matches/{matchId}";
-        public const string Verify = Base + "/matches/{matchId}/verify";
+        public const string GetAll = Base + "/admin/universities";
+        public const string GetById = Base + "/admin/universities/{id}";
+        public const string Create = Base + "/admin/universities";
+        public const string Update = Base + "/admin/universities/{id}";
+        public const string Delete = Base + "/admin/universities/{id}";
     }
 
-    public static class Notifications
+    public static class Departments
     {
-        public const string GetUserNotifications = Base + "/notifications/me";
-        public const string MarkAsRead = Base + "/notifications/{id}/read";
+        public const string GetAll = Base + "/admin/departments";
+        public const string GetById = Base + "/admin/departments/{id}";
+        public const string Create = Base + "/admin/departments";
+        public const string Update = Base + "/admin/departments/{id}";
+        public const string Delete = Base + "/admin/departments/{id}";
     }
 
     public static class Locations
@@ -45,6 +49,20 @@ public static class ApiRoutes
         public const string Create = Base + "/admin/categories";
         public const string Update = Base + "/admin/categories/{id}";
         public const string Delete = Base + "/admin/categories/{id}";
+    }
+
+    public static class Matches
+    {
+        public const string GetAll = Base + "/matches";
+        public const string GetPending = Base + "/matches/pending";
+        public const string GetById = Base + "/matches/{matchId}";
+        public const string Verify = Base + "/matches/{matchId}/verify";
+    }
+
+    public static class Notifications
+    {
+        public const string GetUserNotifications = Base + "/notifications/me";
+        public const string MarkAsRead = Base + "/notifications/{id}/read";
     }
 
     public static class Users

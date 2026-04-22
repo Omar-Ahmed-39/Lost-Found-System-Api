@@ -8,4 +8,5 @@ public class LocationResponseDto
     public string Name { get; set; } = string.Empty;
     public enLocationType LocationType { get; set; }
     public int DepartmentId { get; set; }
+    public string DepartmentName { get; set; } = string.Empty;
 }
