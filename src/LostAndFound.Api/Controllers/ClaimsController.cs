@@ -133,4 +133,37 @@ public class ClaimsController : BaseController
         await _unitOfWork.SaveAsync();
         return Success(true, "Claim submitted successfully.");
     }
+
+    [Authorize]
+    [HttpGet(ApiRoutes.Claims.GetMyClaims)]
+    public async Task<IActionResult> GetMyClaims()
+    {
+        var claims = await _unitOfWork.Claims.GetUserClaimsAsync(GetUserId());
+
+        var response = claims.Select(c => new MyClaimDto
+        {
+            Id = c.Id,
+            ClaimCode = $"CLM-{c.Id:D3}",
+            ReportId = c.ReportId,
+            ItemName = c.Report.ItemName,
+            ClaimDate = c.ClaimDate,
+            ApprovalStatus = c.ApprovalStatus,
+            ImagePath = c.Report.Attachments.FirstOrDefault()?.FilePath ?? string.Empty
+        });
+
+        return Success(response);
+    }
+
+    [Authorize]
+    [HttpPut(ApiRoutes.Claims.Cancel)]
+    public async Task<IActionResult> Cancel([FromRoute] int id)
+    {
+        var canceled = await _unitOfWork.Claims.CancelClaimAsync(id, GetUserId(), false);
+
+        if (!canceled)
+            return Error("Failed to cancel claim.", 400);
+
+        await _unitOfWork.SaveAsync();
+        return Success(true, "Claim canceled successfully.");
+    }
 }
