@@ -110,6 +110,12 @@ public class ReportsController : BaseController
         if (dto.CategoryId <= 0)
             return Error("A valid category is required.", 400);
 
+        if (!Enum.IsDefined(typeof(enReportType), dto.ReportType))
+            return Error("Invalid report type.", 400);
+
+        if (!Enum.IsDefined(typeof(enConditionType), dto.ConditionType))
+            return Error("Invalid condition type.", 400);
+
         var locationExists = await _unitOfWork.Locations.ExistsAsync(l => l.Id == dto.LocationId);
         if (!locationExists)
             return Error("Selected location does not exist.", 400);
@@ -153,6 +159,12 @@ public class ReportsController : BaseController
         if (dto.CategoryId <= 0)
             return Error("A valid category is required.", 400);
 
+        if (!Enum.IsDefined(typeof(enReportType), dto.ReportType))
+            return Error("Invalid report type.", 400);
+
+        if (!Enum.IsDefined(typeof(enConditionType), dto.ConditionType))
+            return Error("Invalid condition type.", 400);
+
         var locationExists = await _unitOfWork.Locations.ExistsAsync(l => l.Id == dto.LocationId);
         if (!locationExists)
             return Error("Selected location does not exist.", 400);
@@ -164,6 +176,7 @@ public class ReportsController : BaseController
         var report = new ItemReport
         {
             Id = id,
+            ReportType = dto.ReportType,
             ItemName = itemName,
             Color = dto.Color?.Trim(),
             ConditionType = dto.ConditionType,
@@ -279,6 +292,9 @@ public class ReportsController : BaseController
     [HttpPut(ApiRoutes.Reports.ChangeStatus)]
     public async Task<IActionResult> ChangeStatus([FromRoute] int id, [FromBody] ChangeStatusDto dto)
     {
+        if (!Enum.IsDefined(typeof(enStatusType), dto.StatusType))
+            return Error("Invalid status type.", 400);
+
         var changed = await _unitOfWork.ItemReports.ChangeStatusAsync(id, dto.StatusType, GetUserId(), true);
         if (!changed)
             return Error("Failed to change report status.", 400);
