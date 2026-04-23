@@ -1,3 +1,4 @@
+using LostAndFound.Core.Constants;
 ﻿using LostAndFound.Api.DTOs.ItemReports;
 using LostAndFound.Core.Entities;
 using LostAndFound.Core.Enums;
@@ -159,7 +160,7 @@ public class ReportsController : BaseController
     // Admin Endpoints
     // =========================================
 
-    [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = AppRoles.AdminOrSuperAdmin)]
     [HttpGet(ApiRoutes.Reports.GetAllAdmin)]
     public async Task<IActionResult> GetAllAdmin(
         [FromQuery] string? search,
@@ -202,7 +203,7 @@ public class ReportsController : BaseController
         return Paged(response, pageNumber, pageSize, result.TotalCount);
     }
 
-    [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = AppRoles.AdminOrSuperAdmin)]
     [HttpGet(ApiRoutes.Reports.GetByIdAdmin)]
     public async Task<IActionResult> GetByIdAdmin([FromRoute] int id)
     {
@@ -225,7 +226,7 @@ public class ReportsController : BaseController
         return Success(response);
     }
 
-    [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = AppRoles.AdminOrSuperAdmin)]
     [HttpDelete(ApiRoutes.Reports.Delete)]
     public async Task<IActionResult> Delete([FromRoute] int id)
     {
@@ -237,7 +238,7 @@ public class ReportsController : BaseController
         return Success(true, "Report deleted successfully.");
     }
 
-    [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = AppRoles.AdminOrSuperAdmin)]
     [HttpPut(ApiRoutes.Reports.ChangeStatus)]
     public async Task<IActionResult> ChangeStatus([FromRoute] int id, [FromBody] ChangeStatusDto dto)
     {
@@ -249,7 +250,7 @@ public class ReportsController : BaseController
         return Success(true, "Report status changed successfully.");
     }
 
-    [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = AppRoles.AdminOrSuperAdmin)]
     [HttpPut(ApiRoutes.Reports.ChangeReportType)]
     public async Task<IActionResult> ChangeReportType([FromRoute] int id, [FromBody] ChangeReportTypeDto dto)
     {
