@@ -114,9 +114,11 @@ public static class ApplicationDbContextSeed
 
         // 7. Seed initial test User
         var userEmail = "user@gmail.com";
-        if (await userManager.FindByEmailAsync(userEmail) == null)
+        var userAdded = false;
+        var appUser = await userManager.FindByEmailAsync(userEmail);
+        if (appUser == null)
         {
-            var user = new User
+            appUser = new User
             {
                 UserName = userEmail,
                 Email = userEmail,
@@ -126,10 +128,133 @@ public static class ApplicationDbContextSeed
                 Created = DateTime.UtcNow
             };
 
-            var result = await userManager.CreateAsync(user, "User@123");
+            var result = await userManager.CreateAsync(appUser, "User@123");
             if (result.Succeeded)
             {
-                await userManager.AddToRoleAsync(user, "User");
+                await userManager.AddToRoleAsync(appUser, "User");
+                userAdded = true;
+            }
+        }
+        _ = userAdded;
+
+        // 8. Seed Item Reports (Lost & Found)
+        if (!await context.ItemReports.AnyAsync())
+        {
+            var user = appUser ?? await context.Users.FirstAsync();
+            var location1 = await context.Locations.Skip(0).FirstAsync();
+            var location2 = await context.Locations.Skip(1).FirstAsync();
+            var category1 = await context.Categories.Skip(0).FirstAsync();
+            var category2 = await context.Categories.Skip(1).FirstAsync();
+
+            var reports = new List<ItemReport>
+            {
+                new() {
+                    ReportType = enReportType.Lost,
+                    ItemName = "iPhone 13",
+                    Color = "Black",
+                    ConditionType = enConditionType.Good,
+                    StatusType = enStatusType.Open,
+                    DateReported = DateTime.UtcNow.AddDays(-2),
+                    Description = "Lost near the main gate.",
+                    UserId = user.Id,
+                    LocationId = location1.Id,
+                    CategoryId = category1.Id,
+                    CreatedAt = DateTime.UtcNow
+                },
+                new() {
+                    ReportType = enReportType.Found,
+                    ItemName = "Leather Wallet",
+                    Color = "Brown",
+                    ConditionType = enConditionType.New,
+                    StatusType = enStatusType.Closed,
+                    DateReported = DateTime.UtcNow.AddDays(-1),
+                    Description = "Found in the student center.",
+                    UserId = user.Id,
+                    LocationId = location2.Id,
+                    CategoryId = category2.Id,
+                    CreatedAt = DateTime.UtcNow
+                }
+            };
+            await context.ItemReports.AddRangeAsync(reports);
+            await context.SaveChangesAsync();
+        }
+
+        // 9. Seed Feedbacks
+        if (!await context.Feedbacks.AnyAsync())
+        {
+            var user = appUser ?? await context.Users.FirstAsync();
+
+            var feedbacks = new List<Feedback>
+            {
+                new() { Subject = "Great App", Message = "Really helped me find my lost keys!", Rating = 5, UserId = user.Id, CreatedAt = DateTime.UtcNow },
+                new() { Subject = "Needs improvement", Message = "The UI could be better.", Rating = 3, IsReplied = true, AdminReply = "Thank you! We're working on it.", UserId = user.Id, CreatedAt = DateTime.UtcNow }
+            };
+            await context.Feedbacks.AddRangeAsync(feedbacks);
+            await context.SaveChangesAsync();
+        }
+
+        // 10. Seed Matches
+        if (!await context.Matches.AnyAsync())
+        {
+            var lostReport = await context.ItemReports.FirstOrDefaultAsync(r => r.ReportType == enReportType.Lost);
+            var foundReport = await context.ItemReports.FirstOrDefaultAsync(r => r.ReportType == enReportType.Found);
+            var systemAdmin = await userManager.FindByEmailAsync("admin@gmail.com");
+
+            if (lostReport != null && foundReport != null && systemAdmin != null)
+            {
+                var match = Match.Create(lostReport.Id, foundReport.Id, 85.5, systemAdmin.Id);
+                match.Approve(systemAdmin.Id);
+                await context.Matches.AddAsync(match);
+                await context.SaveChangesAsync();
+            }
+        }
+
+        // 11. Seed Claims
+        if (!await context.Claims.AnyAsync())
+        {
+            var user = appUser ?? await context.Users.FirstAsync();
+            var foundReport = await context.ItemReports.FirstOrDefaultAsync(r => r.ReportType == enReportType.Found);
+
+            if (foundReport != null)
+            {
+                var claim = new Claim
+                {
+                    UserId = user.Id,
+                    ReportId = foundReport.Id,
+                    ApprovalStatus = enApprovalStatus.Approved,
+                    Remarks = "User proved ownership with serial number verification.",
+                    ClaimDate = DateTime.UtcNow.AddDays(-1),
+                    CreatedAt = DateTime.UtcNow
+                };
+                await context.Claims.AddAsync(claim);
+                await context.SaveChangesAsync();
+            }
+        }
+
+        // 12. Seed Handovers
+        if (!await context.Handovers.AnyAsync())
+        {
+            var systemAdmin = await userManager.FindByEmailAsync("admin@gmail.com");
+            var claim = await context.Claims.FirstOrDefaultAsync(c => c.ApprovalStatus == enApprovalStatus.Approved);
+            var location = await context.Locations.FirstAsync();
+
+            if (claim != null && systemAdmin != null && location != null)
+            {
+                var handover = new Handover
+                {
+                    ClaimId = claim.Id,
+                    ReceiverUserId = claim.UserId,
+                    HandedByUserId = systemAdmin.Id,
+                    LocationId = location.Id,
+                    IdType = enIdType.NationalId,
+                    IdNumber = "1234567890",
+                    HandoverDate = DateTime.UtcNow,
+                    Notes = "Item successfully returned to the owner.",
+                    ImagePath = "dummy-handover-signature.png",
+                    CreatedAt = DateTime.UtcNow
+                };
+                await context.Handovers.AddAsync(handover);
+                await context.SaveChangesAsync();
             }
         }
     }
