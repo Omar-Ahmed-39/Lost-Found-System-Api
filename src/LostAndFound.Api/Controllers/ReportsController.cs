@@ -99,14 +99,39 @@ public class ReportsController : BaseController
     [HttpPost(ApiRoutes.Reports.Create)]
     public async Task<IActionResult> Create([FromBody] ItemReportRequestDto dto)
     {
+        var itemName = dto.ItemName?.Trim();
+
+        if (string.IsNullOrWhiteSpace(itemName))
+            return Error("Item name is required.", 400);
+
+        if (dto.LocationId <= 0)
+            return Error("A valid location is required.", 400);
+
+        if (dto.CategoryId <= 0)
+            return Error("A valid category is required.", 400);
+
+        if (!Enum.IsDefined(typeof(enReportType), dto.ReportType))
+            return Error("Invalid report type.", 400);
+
+        if (!Enum.IsDefined(typeof(enConditionType), dto.ConditionType))
+            return Error("Invalid condition type.", 400);
+
+        var locationExists = await _unitOfWork.Locations.ExistsAsync(l => l.Id == dto.LocationId);
+        if (!locationExists)
+            return Error("Selected location does not exist.", 400);
+
+        var categoryExists = await _unitOfWork.Categories.ExistsAsync(c => c.Id == dto.CategoryId);
+        if (!categoryExists)
+            return Error("Selected category does not exist.", 400);
+
         var report = new ItemReport
         {
             ReportType = dto.ReportType,
-            ItemName = dto.ItemName,
-            Color = dto.Color,
+            ItemName = itemName,
+            Color = dto.Color?.Trim(),
             ConditionType = dto.ConditionType,
             DateReported = dto.DateReported,
-            Description = dto.Description,
+            Description = dto.Description?.Trim(),
             LocationId = dto.LocationId,
             CategoryId = dto.CategoryId,
             UserId = GetUserId(),
@@ -123,14 +148,40 @@ public class ReportsController : BaseController
     [HttpPut(ApiRoutes.Reports.Update)]
     public async Task<IActionResult> Update([FromRoute] int id, [FromBody] ItemReportRequestDto dto)
     {
+        var itemName = dto.ItemName?.Trim();
+
+        if (string.IsNullOrWhiteSpace(itemName))
+            return Error("Item name is required.", 400);
+
+        if (dto.LocationId <= 0)
+            return Error("A valid location is required.", 400);
+
+        if (dto.CategoryId <= 0)
+            return Error("A valid category is required.", 400);
+
+        if (!Enum.IsDefined(typeof(enReportType), dto.ReportType))
+            return Error("Invalid report type.", 400);
+
+        if (!Enum.IsDefined(typeof(enConditionType), dto.ConditionType))
+            return Error("Invalid condition type.", 400);
+
+        var locationExists = await _unitOfWork.Locations.ExistsAsync(l => l.Id == dto.LocationId);
+        if (!locationExists)
+            return Error("Selected location does not exist.", 400);
+
+        var categoryExists = await _unitOfWork.Categories.ExistsAsync(c => c.Id == dto.CategoryId);
+        if (!categoryExists)
+            return Error("Selected category does not exist.", 400);
+
         var report = new ItemReport
         {
             Id = id,
-            ItemName = dto.ItemName,
-            Color = dto.Color,
+            ReportType = dto.ReportType,
+            ItemName = itemName,
+            Color = dto.Color?.Trim(),
             ConditionType = dto.ConditionType,
             DateReported = dto.DateReported,
-            Description = dto.Description,
+            Description = dto.Description?.Trim(),
             LocationId = dto.LocationId,
             CategoryId = dto.CategoryId
         };
@@ -241,6 +292,9 @@ public class ReportsController : BaseController
     [HttpPut(ApiRoutes.Reports.ChangeStatus)]
     public async Task<IActionResult> ChangeStatus([FromRoute] int id, [FromBody] ChangeStatusDto dto)
     {
+        if (!Enum.IsDefined(typeof(enStatusType), dto.StatusType))
+            return Error("Invalid status type.", 400);
+
         var changed = await _unitOfWork.ItemReports.ChangeStatusAsync(id, dto.StatusType, GetUserId(), true);
         if (!changed)
             return Error("Failed to change report status.", 400);
