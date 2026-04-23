@@ -1,5 +1,6 @@
-using LostAndFound.Core.Constants;
 using LostAndFound.Api.DTOs.Categories;
+using LostAndFound.Api.Filters;
+using LostAndFound.Core.Constants;
 using LostAndFound.Core.Entities;
 using LostAndFound.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -45,6 +46,7 @@ public class CategoriesController : BaseController
         });
     }
 
+    [AuditLog("Created New Category")]
     [HttpPost(ApiRoutes.Categories.Create)]
     public async Task<IActionResult> Create([FromBody] CategoryRequestDto dto)
     {
@@ -74,6 +76,7 @@ public class CategoriesController : BaseController
         }, "Category created successfully.");
     }
 
+    [AuditLog("Updated Category")]
     [HttpPut(ApiRoutes.Categories.Update)]
     public async Task<IActionResult> Update([FromRoute] int id, [FromBody] CategoryRequestDto dto)
     {
@@ -103,6 +106,7 @@ public class CategoriesController : BaseController
         }, "Category updated successfully.");
     }
 
+    [AuditLog("Deleted Category")]
     [HttpDelete(ApiRoutes.Categories.Delete)]
     public async Task<IActionResult> Delete([FromRoute] int id)
     {

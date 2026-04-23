@@ -1,5 +1,6 @@
+using LostAndFound.Api.DTOs.Universities;
+using LostAndFound.Api.Filters;
 using LostAndFound.Core.Constants;
-﻿using LostAndFound.Api.DTOs.Universities;
 using LostAndFound.Core.Entities;
 using LostAndFound.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -45,6 +46,7 @@ public class UniversitiesController : BaseController
         });
     }
 
+    [AuditLog("Created New University")]
     [HttpPost(ApiRoutes.Universities.Create)]
     public async Task<IActionResult> Create([FromBody] UniversityRequestDto dto)
     {
@@ -74,6 +76,7 @@ public class UniversitiesController : BaseController
         }, "University created successfully.");
     }
 
+    [AuditLog("Updated University")]
     [HttpPut(ApiRoutes.Universities.Update)]
     public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UniversityRequestDto dto)
     {
@@ -102,6 +105,7 @@ public class UniversitiesController : BaseController
         }, "University updated successfully.");
     }
 
+    [AuditLog("Deleted University")]
     [HttpDelete(ApiRoutes.Universities.Delete)]
     public async Task<IActionResult> Delete([FromRoute] int id)
     {
