@@ -1,0 +1,41 @@
+@host = http://localhost:8080/api/v1
+@token = Bearer YOUR_TOKEN_HERE
+
+### Get Claims
+GET {{host}}/admin/claims
+Authorization: {{token}}
+
+### Get Claim by ID
+GET {{host}}/admin/claims/1
+Authorization: {{token}}
+
+### Approve Claim
+PUT {{host}}/admin/claims/1/approve
+Authorization: {{token}}
+
+### Reject Claim
+PUT {{host}}/admin/claims/1/reject
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "remarks": "Insufficient proof of ownership."
+}
+
+### Create Claim
+POST {{host}}/claims
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "reportId": 1
+}
+
+### Create Claim (Edge case - Invalid Report ID)
+POST {{host}}/claims
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "reportId": 0
+}

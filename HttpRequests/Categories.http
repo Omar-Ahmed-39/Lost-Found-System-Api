@@ -1,0 +1,41 @@
+@host = http://localhost:8080/api/v1
+@token = Bearer YOUR_TOKEN_HERE
+
+### Get Categories
+GET {{host}}/admin/categories
+Authorization: {{token}}
+
+### Create Category
+POST {{host}}/admin/categories
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": "Electronics"
+}
+
+### Create Category (Edge Case - Empty Name)
+POST {{host}}/admin/categories
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": ""
+}
+
+### Get Category by ID
+GET {{host}}/admin/categories/1
+Authorization: {{token}}
+
+### Update Category
+PUT {{host}}/admin/categories/1
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": "Updated Electronics"
+}
+
+### Delete Category
+DELETE {{host}}/admin/categories/1
+Authorization: {{token}}

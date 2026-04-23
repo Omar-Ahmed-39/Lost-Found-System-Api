@@ -1,0 +1,90 @@
+@host = http://localhost:8080/api/v1
+@token = Bearer YOUR_TOKEN_HERE
+
+### Get Reports
+GET {{host}}/reports
+Authorization: {{token}}
+
+### Submit Report
+POST {{host}}/reports
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "reportType": 1,
+  "itemName": "Black Wallet",
+  "color": "Black",
+  "conditionType": 1,
+  "dateReported": "2023-11-20T00:00:00Z",
+  "description": "Lost my wallet in the library.",
+  "locationId": 1,
+  "categoryId": 1
+}
+
+### Submit Report (Edge Case - Missing Required Field)
+POST {{host}}/reports
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "reportType": 1,
+  "color": "Black"
+}
+
+### Get Report By ID
+GET {{host}}/reports/1
+Authorization: {{token}}
+
+### Update Report
+PUT {{host}}/reports/1
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "reportType": 1,
+  "itemName": "Blue Wallet",
+  "color": "Blue",
+  "conditionType": 2,
+  "dateReported": "2023-11-20T00:00:00Z",
+  "description": "Lost blue wallet.",
+  "locationId": 1,
+  "categoryId": 1
+}
+
+### Get My Reports
+GET {{host}}/reports/me
+Authorization: {{token}}
+
+### Cancel Report
+PUT {{host}}/reports/1/cancel
+Authorization: {{token}}
+
+### Get All Reports (Admin)
+GET {{host}}/admin/reports
+Authorization: {{token}}
+
+### Get Admin Report By ID
+GET {{host}}/admin/reports/1
+Authorization: {{token}}
+
+### Delete Report (Admin)
+DELETE {{host}}/admin/reports/1
+Authorization: {{token}}
+
+### Change Report Status (Admin)
+PUT {{host}}/admin/reports/1/status
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "statusType": 2
+}
+
+### Change Report Type (Admin)
+PUT {{host}}/admin/reports/1/type
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "reportType": 2
+}

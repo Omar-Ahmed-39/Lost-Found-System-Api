@@ -1,0 +1,14 @@
+@host = http://localhost:8080/api/v1
+@token = Bearer YOUR_TOKEN_HERE
+
+### Get My Notifications
+GET {{host}}/notifications/me
+Authorization: {{token}}
+
+### Read Notification
+PUT {{host}}/notifications/1/read
+Authorization: {{token}}
+
+### Read Notification (Edge Case - Invalid ID)
+PUT {{host}}/notifications/99999/read
+Authorization: {{token}}
