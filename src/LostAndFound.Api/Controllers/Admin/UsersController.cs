@@ -4,10 +4,13 @@ using Microsoft.EntityFrameworkCore;
 using LostAndFound.Core.Entities;
 using LostAndFound.Api.DTOs.Users;
 using LostAndFound.Api.Controllers;
+using LostAndFound.Core.Constants;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LostAndFound.Api.Controllers.Admin;
 
 [ApiController]
+[Authorize(Roles = AppRoles.SuperAdmin)]
 public class UsersController : BaseController
 {
     private readonly UserManager<User> _userManager;
