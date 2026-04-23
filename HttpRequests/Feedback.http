@@ -1,0 +1,39 @@
+@host = http://localhost:8080/api/v1
+@token = Bearer YOUR_TOKEN_HERE
+
+### Submit Feedback
+POST {{host}}/feedbacks
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "subject": "App Feedback",
+  "message": "Great application!",
+  "rating": 5
+}
+
+### Submit Feedback (Edge Case - Missing Rating)
+POST {{host}}/feedbacks
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "subject": "No Rating"
+}
+
+### Get My Feedbacks
+GET {{host}}/feedbacks/me
+Authorization: {{token}}
+
+### Get All Feedbacks (Admin)
+GET {{host}}/admin/feedbacks
+Authorization: {{token}}
+
+### Reply to Feedback (Admin)
+POST {{host}}/admin/feedbacks/1/reply
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "adminReply": "Thank you for the feedback!"
+}

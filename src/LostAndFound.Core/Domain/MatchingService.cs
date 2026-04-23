@@ -19,10 +19,15 @@ public class MatchingService : IMatchingService
 
         var targetType = report.ReportType == enReportType.Lost ? enReportType.Found : enReportType.Lost;
 
+        var minDate = report.DateReported.AddDays(-30);
+        var maxDate = report.DateReported.AddDays(30);
+
         var candidates = await _unitOfWork.ItemReports.GetAllAsync(
             predicate: t => t.ReportType == targetType
                         && t.CategoryId == report.CategoryId
-                        && t.StatusType == enStatusType.Open,
+                        && t.StatusType == enStatusType.Open
+                        && t.DateReported >= minDate
+                        && t.DateReported <= maxDate,
             isTracking: false
         );
 
@@ -47,7 +52,6 @@ public class MatchingService : IMatchingService
         if (topMatches.Any())
         {
             await _unitOfWork.Matches.AddRangeAsync(topMatches.Select(m => m.Match));
-            await _unitOfWork.SaveAsync();
 
             var candidateById = candidates.ToDictionary(c => c.Id);
             var notifiedUsers = new HashSet<int> { report.UserId };

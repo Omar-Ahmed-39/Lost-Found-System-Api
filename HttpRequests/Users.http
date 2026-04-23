@@ -1,0 +1,58 @@
+@host = http://localhost:8080/api/v1
+@token = Bearer YOUR_TOKEN_HERE
+
+### Get Users (Admin)
+GET {{host}}/admin/users
+Authorization: {{token}}
+
+### Create User (Admin)
+POST {{host}}/admin/users
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": "Jane Roe",
+  "email": "jane@example.com",
+  "password": "Password123!"
+}
+
+### Create User (Edge Case - Invalid Role)
+POST {{host}}/admin/users
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": "Bad User",
+  "email": "bad@example.com",
+  "password": "pwd"
+}
+
+### Get User By ID
+GET {{host}}/admin/users/1
+Authorization: {{token}}
+
+### Update User
+PUT {{host}}/admin/users/1
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": "Updated Name"
+}
+
+### Delete User
+DELETE {{host}}/admin/users/1
+Authorization: {{token}}
+
+### Block User
+PATCH {{host}}/admin/users/1/block
+Authorization: {{token}}
+
+### Change User Role
+PATCH {{host}}/admin/users/1/role
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "role": "Admin"
+}

@@ -1,3 +1,4 @@
+using LostAndFound.Core.Constants;
 using LostAndFound.Api.DTOs.Match;
 using LostAndFound.Core.Enums;
 using LostAndFound.Core.Features.Matches.Commands;
@@ -7,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace LostAndFound.Api.Controllers;
 
-[Authorize(Roles = "Admin,SuperAdmin")]
+[Authorize(Roles = AppRoles.AdminOrSuperAdmin)]
 public class MatchesController : BaseController
 {
     private readonly IUnitOfWork _unitOfWork;

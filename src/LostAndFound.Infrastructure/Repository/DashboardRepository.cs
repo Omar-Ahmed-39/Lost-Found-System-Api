@@ -3,6 +3,8 @@ using LostAndFound.Core.Interfaces;
 using LostAndFound.Core.Domain.Dashboard;
 using LostAndFound.Core.Enums;
 using Microsoft.AspNetCore.Identity;
+using System.Data;
+using Microsoft.Data.SqlClient;
 using LostAndFound.Core.Entities;
 
 namespace LostAndFound.Infrastructure.Repository;
@@ -35,59 +37,54 @@ public class DashboardRepository : IDashboardRepository
 
     private async Task<OverviewStats> GetOverviewStatsAsync(DateTime startOfThisWeek, DateTime startOfLastWeek)
     {
-        // Active Reports
-        var totalActiveReports = await _context.ItemReports
-            .Where(r => r.StatusType == enStatusType.Open || r.StatusType == enStatusType.UnderReview)
-            .CountAsync();
+        var stats = new OverviewStats();
 
-        var activeReportsThisWeek = await _context.ItemReports
-            .Where(r => (r.StatusType == enStatusType.Open || r.StatusType == enStatusType.UnderReview) && r.CreatedAt >= startOfThisWeek)
-            .CountAsync();
-
-        // Pending Claims
-        var totalPendingClaims = await _context.Claims
-            .Where(c => c.ApprovalStatus == enApprovalStatus.Pending)
-            .CountAsync();
-
-        var pendingClaimsLastWeek = await _context.Claims
-            .Where(c => c.ApprovalStatus == enApprovalStatus.Pending && c.CreatedAt >= startOfLastWeek && c.CreatedAt < startOfThisWeek)
-            .CountAsync();
-
-        // Recovery Rate
-        var totalResolvedReports = await _context.ItemReports
-            .Where(r => r.StatusType == enStatusType.Returned || r.StatusType == enStatusType.Closed)
-            .CountAsync();
-
-        var totalReports = await _context.ItemReports.CountAsync();
-
-        var recoveryRate = totalReports > 0 ? Math.Round((double)totalResolvedReports / totalReports * 100, 1) : 0;
-
-        // Users
-        var totalUsersCount = await _userManager.Users.CountAsync();
-        var newUsersThisWeek = await _userManager.Users.Where(u => u.Created >= startOfThisWeek).CountAsync();
-
-        return new OverviewStats
+        // Use ADO.NET explicitly to run the Stored Procedure efficiently without configuring Keyless Entity
+        using (var command = _context.Database.GetDbConnection().CreateCommand())
         {
-            ActiveReports = totalActiveReports,
-            ActiveReportsTrend = $"+{activeReportsThisWeek} this week",
+            command.CommandText = "sp_GetOverviewStats";
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.Add(new SqlParameter("@StartOfThisWeek", startOfThisWeek));
+            command.Parameters.Add(new SqlParameter("@StartOfLastWeek", startOfLastWeek));
 
-            PendingClaims = totalPendingClaims,
-            PendingClaimsTrend = totalPendingClaims > pendingClaimsLastWeek
-                                 ? $"+{totalPendingClaims - pendingClaimsLastWeek} this week"
-                                 : $"-{pendingClaimsLastWeek - totalPendingClaims} this week", // Simplified trend calculation for demo
+            await _context.Database.OpenConnectionAsync();
 
-            RecoveryRate = recoveryRate,
-            RecoveryRateTrend = "+0.0% this month", // Assuming this needs more complex historical rate calculation, hardcoding pattern
+            using (var reader = await command.ExecuteReaderAsync())
+            {
+                if (await reader.ReadAsync())
+                {
+                    int activeReports = reader.GetInt32(reader.GetOrdinal("ActiveReports"));
+                    int activeReportsThisWeek = reader.GetInt32(reader.GetOrdinal("ActiveReportsThisWeek"));
+                    int pendingClaims = reader.GetInt32(reader.GetOrdinal("TotalPendingClaims"));
+                    int pendingClaimsLastWeek = reader.GetInt32(reader.GetOrdinal("PendingClaimsLastWeek"));
+                    double recoveryRate = reader.GetDouble(reader.GetOrdinal("RecoveryRate"));
+                    int totalUsers = reader.GetInt32(reader.GetOrdinal("TotalUsersCount"));
+                    int newUsersThisWeek = reader.GetInt32(reader.GetOrdinal("NewUsersThisWeek"));
 
-            TotalUsers = totalUsersCount,
-            TotalUsersTrend = $"+{newUsersThisWeek} new users"
-        };
+                    stats.ActiveReports = activeReports;
+                    stats.ActiveReportsTrend = $"+{activeReportsThisWeek} this week";
+
+                    stats.PendingClaims = pendingClaims;
+                    stats.PendingClaimsTrend = pendingClaims > pendingClaimsLastWeek
+                                            ? $"+{pendingClaims - pendingClaimsLastWeek} this week"
+                                            : $"-{pendingClaimsLastWeek - pendingClaims} this week";
+
+                    stats.RecoveryRate = recoveryRate;
+                    stats.RecoveryRateTrend = "+0.0% this month";
+
+                    stats.TotalUsers = totalUsers;
+                    stats.TotalUsersTrend = $"+{newUsersThisWeek} new users";
+                }
+            }
+            await _context.Database.CloseConnectionAsync();
+        }
+
+        return stats;
     }
 
     private async Task<List<CategoryStat>> GetReportsByCategoryAsync()
     {
         return await _context.ItemReports
-            .Include(r => r.Category)
             .GroupBy(r => r.Category.Name)
             .Select(g => new CategoryStat
             {
@@ -127,37 +124,43 @@ public class DashboardRepository : IDashboardRepository
 
     private async Task<List<RecentActivity>> GetRecentActivityAsync()
     {
+        // Only fetch raw data with raw DateTimes to avoid expensive string parsing allocations
         var recentReports = await _context.ItemReports
-            .Include(r => r.User)
             .OrderByDescending(r => r.CreatedAt)
             .Take(5)
-            .Select(r => new RecentActivity
+            .Select(r => new
             {
                 Action = $"New {r.ReportType.ToString().ToLower()} report filed",
                 Details = $"{r.User.Name} • {r.ItemName}",
                 Status = r.ReportType.ToString(),
-                TimeAgo = CalculateTimeAgo(r.CreatedAt)
+                Timestamp = r.CreatedAt
             })
             .ToListAsync();
 
         var recentClaims = await _context.Claims
-            .Include(c => c.User)
-            .Include(c => c.Report)
             .Where(c => c.ApprovalStatus == enApprovalStatus.Approved)
-            .OrderByDescending(c => c.UpdatedAt)
+            .OrderByDescending(c => c.UpdatedAt ?? c.CreatedAt)
             .Take(5)
-            .Select(c => new RecentActivity
+            .Select(c => new
             {
                 Action = "Claim approved",
                 Details = $"{c.User.Name} • {c.Report.ItemName}",
                 Status = "Approved",
-                TimeAgo = CalculateTimeAgo(c.UpdatedAt ?? c.CreatedAt)
+                Timestamp = c.UpdatedAt ?? c.CreatedAt
             })
             .ToListAsync();
 
+        // Combine logic in memory: order by the REAL timestamp, take top 5, then parse time ago as string
         return recentReports.Concat(recentClaims)
-            .OrderByDescending(a => DateTime.Parse(a.TimeAgo.Split(' ')[0] + " " + a.TimeAgo.Split(' ')[1])) // very rough ordering by time ago, assumes "X min ago"
+            .OrderByDescending(a => a.Timestamp)
             .Take(5)
+            .Select(a => new RecentActivity
+            {
+                Action = a.Action,
+                Details = a.Details,
+                Status = a.Status,
+                TimeAgo = CalculateTimeAgo(a.Timestamp)
+            })
             .ToList();
     }
 

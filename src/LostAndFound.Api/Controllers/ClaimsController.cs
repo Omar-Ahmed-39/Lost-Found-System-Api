@@ -1,3 +1,4 @@
+using LostAndFound.Core.Constants;
 ﻿using LostAndFound.Api.DTOs.Claims;
 using LostAndFound.Core.Enums;
 using LostAndFound.Core.Filters;
@@ -20,7 +21,7 @@ public class ClaimsController : BaseController
     // Admin Endpoints
     // =========================
 
-    [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = AppRoles.AdminOrSuperAdmin)]
     [HttpGet(ApiRoutes.Claims.GetAll)]
     public async Task<IActionResult> GetAll(
         [FromQuery] string? search,
@@ -61,7 +62,7 @@ public class ClaimsController : BaseController
         return Paged(response, pageNumber, pageSize, result.TotalCount);
     }
 
-    [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = AppRoles.AdminOrSuperAdmin)]
     [HttpGet(ApiRoutes.Claims.GetById)]
     public async Task<IActionResult> GetById([FromRoute] int id)
     {
@@ -91,7 +92,7 @@ public class ClaimsController : BaseController
         return Success(response);
     }
 
-    [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = AppRoles.AdminOrSuperAdmin)]
     [HttpPut(ApiRoutes.Claims.Approve)]
     public async Task<IActionResult> Approve([FromRoute] int id)
     {
@@ -103,7 +104,7 @@ public class ClaimsController : BaseController
         return Success(true, "Claim approved successfully.");
     }
 
-    [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = AppRoles.AdminOrSuperAdmin)]
     [HttpPut(ApiRoutes.Claims.Reject)]
     public async Task<IActionResult> Reject([FromRoute] int id, [FromBody] RejectClaimDto dto)
     {

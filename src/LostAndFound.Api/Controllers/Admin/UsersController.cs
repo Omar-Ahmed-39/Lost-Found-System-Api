@@ -2,12 +2,16 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using LostAndFound.Core.Entities;
-using LostAndFound.Api.DTOs.Users;
 using LostAndFound.Api.Controllers;
+using LostAndFound.Api.DTOs.Users;
+using LostAndFound.Api.Filters;
+using LostAndFound.Core.Constants;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LostAndFound.Api.Controllers.Admin;
 
 [ApiController]
+[Authorize(Roles = AppRoles.SuperAdmin)]
 public class UsersController : BaseController
 {
     private readonly UserManager<User> _userManager;
@@ -22,7 +26,7 @@ public class UsersController : BaseController
     {
         var query = _userManager.Users.AsNoTracking();
         var totalRecords = await query.CountAsync();
-        
+
         var users = await query
             .OrderByDescending(u => u.Created)
             .Skip((pageNumber - 1) * pageSize)
@@ -50,12 +54,13 @@ public class UsersController : BaseController
         return Success(MapToResponse(user, roles));
     }
 
+    [AuditLog("Created New User")]
     [HttpPost(ApiRoutes.Users.Create)]
     public async Task<IActionResult> CreateUser([FromBody] CreateUserDto dto)
     {
-        var user = new User 
-        { 
-            UserName = dto.Email, 
+        var user = new User
+        {
+            UserName = dto.Email,
             Email = dto.Email,
             Name = dto.Name,
             Created = DateTime.UtcNow,
@@ -74,6 +79,7 @@ public class UsersController : BaseController
         return Created(MapToResponse(user, roles), "User created successfully.");
     }
 
+    [AuditLog("Updated User")]
     [HttpPut(ApiRoutes.Users.Update)]
     public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserDto dto)
     {
@@ -92,6 +98,7 @@ public class UsersController : BaseController
         return Success(MapToResponse(user, roles), "User updated successfully.");
     }
 
+    [AuditLog("Deleted User")]
     [HttpDelete(ApiRoutes.Users.Delete)]
     public async Task<IActionResult> DeleteUser(int id)
     {
@@ -106,6 +113,7 @@ public class UsersController : BaseController
         return Success((object)null!, "User deleted successfully.");
     }
 
+    [AuditLog("Toggled User Block Status")]
     [HttpPatch(ApiRoutes.Users.ToggleBlock)]
     public async Task<IActionResult> ToggleBlockUser(int id, [FromQuery] bool block = true)
     {
@@ -125,11 +133,12 @@ public class UsersController : BaseController
         return Success(MapToResponse(user, roles), $"User has been {status} successfully.");
     }
 
+    [AuditLog("Changed User Role")]
     [HttpPatch(ApiRoutes.Users.ChangeRole)]
     public async Task<IActionResult> ChangeRole(int id, [FromBody] ChangeUserRoleDto dto)
     {
         var targetRole = dto.Role.Trim();
-        if (!targetRole.Equals("User", StringComparison.OrdinalIgnoreCase) && 
+        if (!targetRole.Equals("User", StringComparison.OrdinalIgnoreCase) &&
             !targetRole.Equals("Admin", StringComparison.OrdinalIgnoreCase))
         {
             return Error("Role must be strictly 'User' or 'Admin'.");
@@ -141,7 +150,7 @@ public class UsersController : BaseController
 
         var currentRoles = await _userManager.GetRolesAsync(user);
         var result = await _userManager.RemoveFromRolesAsync(user, currentRoles);
-        
+
         if (!result.Succeeded)
             return Error(result.Errors.Select(e => e.Description).ToList());
 

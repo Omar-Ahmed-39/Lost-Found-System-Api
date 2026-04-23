@@ -1,0 +1,46 @@
+@host = http://localhost:8080/api/v1
+@token = Bearer YOUR_TOKEN_HERE
+
+### Get Locations
+GET {{host}}/admin/locations
+Authorization: {{token}}
+
+### Create Location
+POST {{host}}/admin/locations
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": "Main Library",
+  "locationType": 1,
+  "departmentId": 1
+}
+
+### Create Location (Edge Case - Missing Location Type)
+POST {{host}}/admin/locations
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": "Test Location",
+  "departmentId": 1
+}
+
+### Get Location By ID
+GET {{host}}/admin/locations/1
+Authorization: {{token}}
+
+### Update Location
+PUT {{host}}/admin/locations/1
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": "Updated Location Name",
+  "locationType": 2,
+  "departmentId": 2
+}
+
+### Delete Location
+DELETE {{host}}/admin/locations/1
+Authorization: {{token}}

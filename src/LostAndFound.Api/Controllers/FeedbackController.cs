@@ -1,3 +1,4 @@
+using LostAndFound.Core.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using LostAndFound.Core.Interfaces;
@@ -48,7 +49,7 @@ public class FeedbackController : BaseController
     }
 
     [HttpGet(ApiRoutes.Feedbacks.GetAllAdmin)]
-    [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = AppRoles.AdminOrSuperAdmin)]
     public async Task<IActionResult> GetAll([FromQuery] bool pendingOnly = false)
     {
         var feedbacks = await _unitOfWork.Feedbacks.GetFeedbacksForAdminAsync(pendingOnly);
@@ -56,7 +57,7 @@ public class FeedbackController : BaseController
     }
 
     [HttpPost(ApiRoutes.Feedbacks.Reply)]
-    [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = AppRoles.AdminOrSuperAdmin)]
     public async Task<IActionResult> Reply(int id, [FromBody] ReplyFeedbackDto dto)
     {
         var feedback = await _unitOfWork.Feedbacks.FindAsync(id);

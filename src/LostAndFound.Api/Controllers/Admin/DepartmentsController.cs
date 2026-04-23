@@ -1,4 +1,6 @@
-﻿using LostAndFound.Api.DTOs.Departments;
+using LostAndFound.Api.DTOs.Departments;
+using LostAndFound.Api.Filters;
+using LostAndFound.Core.Constants;
 using LostAndFound.Core.Entities;
 using LostAndFound.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -6,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace LostAndFound.Api.Controllers.Admin;
 
-[Authorize(Roles = "Admin,SuperAdmin")]
+[Authorize(Roles = AppRoles.AdminOrSuperAdmin)]
 public class DepartmentsController : BaseController
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -55,6 +57,7 @@ public class DepartmentsController : BaseController
         });
     }
 
+    [AuditLog("Created New Department")]
     [HttpPost(ApiRoutes.Departments.Create)]
     public async Task<IActionResult> Create([FromBody] DepartmentRequestDto dto)
     {
@@ -94,6 +97,7 @@ public class DepartmentsController : BaseController
         }, "Department created successfully.");
     }
 
+    [AuditLog("Updated Department")]
     [HttpPut(ApiRoutes.Departments.Update)]
     public async Task<IActionResult> Update([FromRoute] int id, [FromBody] DepartmentRequestDto dto)
     {
@@ -134,6 +138,7 @@ public class DepartmentsController : BaseController
         }, "Department updated successfully.");
     }
 
+    [AuditLog("Deleted Department")]
     [HttpDelete(ApiRoutes.Departments.Delete)]
     public async Task<IActionResult> Delete([FromRoute] int id)
     {

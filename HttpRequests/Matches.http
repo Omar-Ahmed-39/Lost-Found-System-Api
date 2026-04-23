@@ -1,0 +1,34 @@
+@host = http://localhost:8080/api/v1
+@token = Bearer YOUR_TOKEN_HERE
+
+### Get Matches
+GET {{host}}/matches
+Authorization: {{token}}
+
+### Get Pending Matches
+GET {{host}}/matches/pending
+Authorization: {{token}}
+
+### Get Match by ID
+GET {{host}}/matches/1
+Authorization: {{token}}
+
+### Verify/Approve Match
+PUT {{host}}/matches/1/verify
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "isApproved": true,
+  "rejectionReason": ""
+}
+
+### Verify/Reject Match (Edge Case - Missing Reason)
+PUT {{host}}/matches/1/verify
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "isApproved": false,
+  "rejectionReason": null
+}

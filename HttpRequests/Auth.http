@@ -1,0 +1,64 @@
+@host = http://localhost:8080/api/v1
+@token = Bearer YOUR_TOKEN_HERE
+
+### Login (Valid)
+POST {{host}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@gmail.com",
+  "password": "User@123",
+  "fcmToken": "optional-token"
+}
+
+### Login (Edge Case - Missing Password)
+POST {{host}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com"
+}
+
+### Register (Valid)
+POST {{host}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "Password123!"
+}
+
+### Register (Edge Case - Invalid Email Format)
+POST {{host}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "Jane",
+  "email": "notanemail",
+  "password": "Password123!"
+}
+
+### Refresh Token
+POST {{host}}/auth/refresh
+Content-Type: application/json
+
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjMiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ1c2VyQGdtYWlsLmNvbSIsImp0aSI6Ijk4NDlmMzA0LThhZmUtNDhiNC05MGMxLTM5YmYwZmU2Mjc0NiIsIk5hbWUiOiJSZWd1bGFyIFVzZXIiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJVc2VyIiwiZXhwIjoxNzc2ODk5NjgzLCJpc3MiOiJMb3N0QW5kRm91bmRBcGkiLCJhdWQiOiJMb3N0QW5kRm91bmRDbGllbnRzIn0.rB8Muz4o6H4HGKNOFaEp7upF5a63F7PrzIEFvm6uNd4",
+  "refreshToken": "s6keGPJK0M09MyooHvKRrSk6pX8LaXMQaDkjyJc9YLQ="
+}
+
+### Change Password
+PUT {{host}}/auth/change-password
+Authorization: {eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjMiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ1c2VyQGdtYWlsLmNvbSIsImp0aSI6IjZkZjc0MDBjLTBlNzYtNDMxYi04MmQyLTdlY2RjMTQ2YmQzOSIsIk5hbWUiOiJSZWd1bGFyIFVzZXIiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJVc2VyIiwiZXhwIjoxNzc2ODk5NzM0LCJpc3MiOiJMb3N0QW5kRm91bmRBcGkiLCJhdWQiOiJMb3N0QW5kRm91bmRDbGllbnRzIn0.VqgJgnxbnk9U9vk9qDI0C7qnPg_1VUSW94q5sfPN2jY}
+Content-Type: application/json
+
+{
+  "currentPassword": "OldPassword1!",
+  "newPassword": "NewPassword2!"
+}
+
+### Logout
+POST {{host}}/auth/logout
+Authorization: {{token}}
+Content-Type: application/json

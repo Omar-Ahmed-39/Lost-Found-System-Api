@@ -1,0 +1,6 @@
+@host = http://localhost:8080/api/v1
+@token = Bearer YOUR_TOKEN_HERE
+
+### Get Dashboard Stats
+GET {{host}}/admin/dashboard/stats
+Authorization: {{token}}
