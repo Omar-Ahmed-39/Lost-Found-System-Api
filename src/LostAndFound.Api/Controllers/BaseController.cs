@@ -46,6 +46,9 @@ public abstract class BaseController : ControllerBase
 
     protected IActionResult Paged<T>(T data, int pageNumber, int pageSize, int totalRecords, string? message = null)
     {
+        pageNumber = pageNumber < 1 ? 1 : pageNumber;
+        pageSize = pageSize < 1 ? 10 : pageSize;
+
         return Ok(new ApiPagedResponse<T>(data, pageNumber, pageSize, totalRecords, message));
     }
 }
