@@ -54,8 +54,7 @@ public class AuthController : BaseController
 
         if (!result.Succeeded)
         {
-            var errors = result.Errors.Select(e => e.Description).ToList();
-            return Error(errors, StatusCodes.Status400BadRequest);
+            return Error("Registration failed. Please check your inputs and try again.", StatusCodes.Status400BadRequest);
         }
 
         return Created<object>(null!, "Account created successfully.");

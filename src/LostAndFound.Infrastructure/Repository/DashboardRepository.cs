@@ -85,7 +85,6 @@ public class DashboardRepository : IDashboardRepository
     private async Task<List<CategoryStat>> GetReportsByCategoryAsync()
     {
         return await _context.ItemReports
-            .Include(r => r.Category)
             .GroupBy(r => r.Category.Name)
             .Select(g => new CategoryStat
             {
@@ -127,7 +126,6 @@ public class DashboardRepository : IDashboardRepository
     {
         // Only fetch raw data with raw DateTimes to avoid expensive string parsing allocations
         var recentReports = await _context.ItemReports
-            .Include(r => r.User)
             .OrderByDescending(r => r.CreatedAt)
             .Take(5)
             .Select(r => new
@@ -140,8 +138,6 @@ public class DashboardRepository : IDashboardRepository
             .ToListAsync();
 
         var recentClaims = await _context.Claims
-            .Include(c => c.User)
-            .Include(c => c.Report)
             .Where(c => c.ApprovalStatus == enApprovalStatus.Approved)
             .OrderByDescending(c => c.UpdatedAt ?? c.CreatedAt)
             .Take(5)
