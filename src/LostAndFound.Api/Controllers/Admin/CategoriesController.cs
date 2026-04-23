@@ -1,3 +1,4 @@
+using LostAndFound.Core.Constants;
 using LostAndFound.Api.DTOs.Categories;
 using LostAndFound.Core.Entities;
 using LostAndFound.Core.Interfaces;
@@ -6,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace LostAndFound.Api.Controllers.Admin;
 
-[Authorize(Roles = "Admin,SuperAdmin")]
+[Authorize(Roles = AppRoles.AdminOrSuperAdmin)]
 public class CategoriesController : BaseController
 {
     private readonly IUnitOfWork _unitOfWork;
