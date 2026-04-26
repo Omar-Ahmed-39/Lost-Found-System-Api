@@ -47,13 +47,16 @@ public class CategoriesController : BaseController
     [HttpPost(ApiRoutes.Categories.Create)]
     public async Task<IActionResult> Create([FromBody] CategoryRequestDto dto)
     {
-        var normalizedName = dto.Name.Trim();
+        var normalizedName = dto.Name?.Trim();
 
         if (string.IsNullOrWhiteSpace(normalizedName))
             return Error("Category name is required.", 400);
 
-        var exists = await _unitOfWork.Categories.ExistsAsync(c =>
-            c.Name.ToLower() == normalizedName.ToLower());
+        if (!IsValidName(normalizedName))
+            return Error("Category name must contain only letters and spaces.", 400);
+
+        var exists = await _unitOfWork.Categories
+            .ExistsAsync(c => c.Name.ToLower() == normalizedName.ToLower());
 
         if (exists)
             return Error("Category already exists.", 400);
@@ -76,18 +79,20 @@ public class CategoriesController : BaseController
     [HttpPut(ApiRoutes.Categories.Update)]
     public async Task<IActionResult> Update([FromRoute] int id, [FromBody] CategoryRequestDto dto)
     {
-        var category = await _unitOfWork.Categories.FindAsync(id);
-        if (category == null)
-            return Error("Category not found.", 404);
-
-        var normalizedName = dto.Name.Trim();
+        var normalizedName = dto.Name?.Trim();
 
         if (string.IsNullOrWhiteSpace(normalizedName))
             return Error("Category name is required.", 400);
 
-        var exists = await _unitOfWork.Categories.ExistsAsync(c =>
-            c.Name.ToLower() == normalizedName.ToLower() &&
-            c.Id != id);
+        if (!IsValidName(normalizedName))
+            return Error("Category name must contain only letters and spaces.", 400);
+
+        var category = await _unitOfWork.Categories.FindAsync(id);
+        if (category == null)
+            return Error("Category not found.", 404);
+
+        var exists = await _unitOfWork.Categories
+            .ExistsAsync(c => c.Name.ToLower() == normalizedName.ToLower() && c.Id != id);
 
         if (exists)
             return Error("Category name already exists.", 400);

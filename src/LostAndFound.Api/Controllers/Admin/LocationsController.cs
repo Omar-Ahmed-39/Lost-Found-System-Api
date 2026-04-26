@@ -1,5 +1,6 @@
 using LostAndFound.Api.DTOs.Locations;
 using LostAndFound.Core.Entities;
+using LostAndFound.Core.Enums;
 using LostAndFound.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -60,18 +61,26 @@ public class LocationsController : BaseController
     [HttpPost(ApiRoutes.Locations.Create)]
     public async Task<IActionResult> Create([FromBody] LocationRequestDto dto)
     {
-        var departmentExists = await _unitOfWork.Departments.ExistsAsync(d => d.Id == dto.DepartmentId);
-        if (!departmentExists)
-            return Error("Selected department does not exist.", 400);
-
-        var normalizedName = dto.Name.Trim();
+        var normalizedName = dto.Name?.Trim();
 
         if (string.IsNullOrWhiteSpace(normalizedName))
             return Error("Location name is required.", 400);
 
-        var exists = await _unitOfWork.Locations.ExistsAsync(l =>
-            l.Name.ToLower() == normalizedName.ToLower() &&
-            l.DepartmentId == dto.DepartmentId);
+        if (!IsValidName(normalizedName))
+            return Error("Location name must contain only letters and spaces.", 400);
+
+        if (dto.DepartmentId <= 0)
+            return Error("A valid department is required.", 400);
+
+        if (!Enum.IsDefined(typeof(enLocationType), dto.LocationType))
+            return Error("Invalid location type.", 400);
+
+        var departmentExists = await _unitOfWork.Departments.ExistsAsync(d => d.Id == dto.DepartmentId);
+        if (!departmentExists)
+            return Error("Selected department does not exist.", 400);
+
+        var exists = await _unitOfWork.Locations
+            .ExistsAsync(l => l.Name.ToLower() == normalizedName.ToLower() && l.DepartmentId == dto.DepartmentId);
 
         if (exists)
             return Error("Location already exists in this department.", 400);
@@ -105,19 +114,28 @@ public class LocationsController : BaseController
         if (location == null)
             return Error("Location not found.", 404);
 
-        var departmentExists = await _unitOfWork.Departments.ExistsAsync(d => d.Id == dto.DepartmentId);
-        if (!departmentExists)
-            return Error("Selected department does not exist.", 400);
-
-        var normalizedName = dto.Name.Trim();
+        var normalizedName = dto.Name?.Trim();
 
         if (string.IsNullOrWhiteSpace(normalizedName))
             return Error("Location name is required.", 400);
 
-        var exists = await _unitOfWork.Locations.ExistsAsync(l =>
-            l.Name.ToLower() == normalizedName.ToLower() &&
-            l.DepartmentId == dto.DepartmentId &&
-            l.Id != id);
+        if (!IsValidName(normalizedName))
+            return Error("Location name must contain only letters and spaces.", 400);
+
+        if (dto.DepartmentId <= 0)
+            return Error("A valid department is required.", 400);
+
+        if (!Enum.IsDefined(typeof(enLocationType), dto.LocationType))
+            return Error("Invalid location type.", 400);
+
+        var departmentExists = await _unitOfWork.Departments.ExistsAsync(d => d.Id == dto.DepartmentId);
+        if (!departmentExists)
+            return Error("Selected department does not exist.", 400);
+
+        var exists = await _unitOfWork.Locations
+            .ExistsAsync(l => l.Name.ToLower() == normalizedName.ToLower()
+                           && l.DepartmentId == dto.DepartmentId
+                           && l.Id != id);
 
         if (exists)
             return Error("Location name already exists in this department.", 400);

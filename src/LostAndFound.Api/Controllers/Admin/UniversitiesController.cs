@@ -47,13 +47,16 @@ public class UniversitiesController : BaseController
     [HttpPost(ApiRoutes.Universities.Create)]
     public async Task<IActionResult> Create([FromBody] UniversityRequestDto dto)
     {
-        var normalizedName = dto.Name.Trim();
+        var normalizedName = dto.Name?.Trim();
 
         if (string.IsNullOrWhiteSpace(normalizedName))
             return Error("University name is required.", 400);
 
-        var exists = await _unitOfWork.Universities.ExistsAsync(u =>
-            u.Name.ToLower() == normalizedName.ToLower());
+        if (!IsValidName(normalizedName))
+            return Error("University name must contain only letters and spaces.", 400);
+
+        var exists = await _unitOfWork.Universities
+            .ExistsAsync(u => u.Name.ToLower() == normalizedName.ToLower());
 
         if (exists)
             return Error("University already exists.", 400);
@@ -80,13 +83,16 @@ public class UniversitiesController : BaseController
         if (university == null)
             return Error("University not found.", 404);
 
-        var normalizedName = dto.Name.Trim();
+        var normalizedName = dto.Name?.Trim();
 
         if (string.IsNullOrWhiteSpace(normalizedName))
             return Error("University name is required.", 400);
 
-        var exists = await _unitOfWork.Universities.ExistsAsync(u =>
-            u.Name.ToLower() == normalizedName.ToLower() && u.Id != id);
+        if (!IsValidName(normalizedName))
+            return Error("University name must contain only letters and spaces.", 400);
+
+        var exists = await _unitOfWork.Universities
+            .ExistsAsync(u => u.Name.ToLower() == normalizedName.ToLower() && u.Id != id);
 
         if (exists)
             return Error("University name already exists.", 400);
