@@ -1,6 +1,7 @@
-using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using System.Text.RegularExpressions;
 
 namespace LostAndFound.Api.Controllers;
 
@@ -50,5 +51,10 @@ public abstract class BaseController : ControllerBase
         pageSize = pageSize < 1 ? 10 : pageSize;
 
         return Ok(new ApiPagedResponse<T>(data, pageNumber, pageSize, totalRecords, message));
+    }
+
+    protected static bool IsValidName(string name)
+    {
+        return Regex.IsMatch(name, @"^[A-Za-z\s]+$");
     }
 }
