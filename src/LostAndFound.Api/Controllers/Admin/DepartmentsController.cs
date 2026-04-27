@@ -61,18 +61,23 @@ public class DepartmentsController : BaseController
     [HttpPost(ApiRoutes.Departments.Create)]
     public async Task<IActionResult> Create([FromBody] DepartmentRequestDto dto)
     {
-        var universityExists = await _unitOfWork.Universities.ExistsAsync(u => u.Id == dto.UniversityId);
-        if (!universityExists)
-            return Error("Selected university does not exist.", 400);
-
-        var normalizedName = dto.Name.Trim();
+        var normalizedName = dto.Name?.Trim();
 
         if (string.IsNullOrWhiteSpace(normalizedName))
             return Error("Department name is required.", 400);
 
-        var exists = await _unitOfWork.Departments.ExistsAsync(d =>
-            d.Name.ToLower() == normalizedName.ToLower() &&
-            d.UniversityId == dto.UniversityId);
+        if (!IsValidName(normalizedName))
+            return Error("Department name must contain only letters and spaces.", 400);
+
+        if (dto.UniversityId <= 0)
+            return Error("A valid university is required.", 400);
+
+        var universityExists = await _unitOfWork.Universities.ExistsAsync(u => u.Id == dto.UniversityId);
+        if (!universityExists)
+            return Error("Selected university does not exist.", 400);
+
+        var exists = await _unitOfWork.Departments
+            .ExistsAsync(d => d.Name.ToLower() == normalizedName.ToLower() && d.UniversityId == dto.UniversityId);
 
         if (exists)
             return Error("Department already exists in this university.", 400);
@@ -105,19 +110,25 @@ public class DepartmentsController : BaseController
         if (department == null)
             return Error("Department not found.", 404);
 
-        var universityExists = await _unitOfWork.Universities.ExistsAsync(u => u.Id == dto.UniversityId);
-        if (!universityExists)
-            return Error("Selected university does not exist.", 400);
-
-        var normalizedName = dto.Name.Trim();
+        var normalizedName = dto.Name?.Trim();
 
         if (string.IsNullOrWhiteSpace(normalizedName))
             return Error("Department name is required.", 400);
 
-        var exists = await _unitOfWork.Departments.ExistsAsync(d =>
-            d.Name.ToLower() == normalizedName.ToLower() &&
-            d.UniversityId == dto.UniversityId &&
-            d.Id != id);
+        if (!IsValidName(normalizedName))
+            return Error("Department name must contain only letters and spaces.", 400);
+
+        if (dto.UniversityId <= 0)
+            return Error("A valid university is required.", 400);
+
+        var universityExists = await _unitOfWork.Universities.ExistsAsync(u => u.Id == dto.UniversityId);
+        if (!universityExists)
+            return Error("Selected university does not exist.", 400);
+
+        var exists = await _unitOfWork.Departments
+            .ExistsAsync(d => d.Name.ToLower() == normalizedName.ToLower()
+                           && d.UniversityId == dto.UniversityId
+                           && d.Id != id);
 
         if (exists)
             return Error("Department name already exists in this university.", 400);

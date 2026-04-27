@@ -308,6 +308,9 @@ public class ReportsController : BaseController
     [HttpPut(ApiRoutes.Reports.ChangeReportType)]
     public async Task<IActionResult> ChangeReportType([FromRoute] int id, [FromBody] ChangeReportTypeDto dto)
     {
+        if (!Enum.IsDefined(typeof(enReportType), dto.ReportType))
+            return Error("Invalid report type.", 400);
+
         var changed = await _unitOfWork.ItemReports.ChangeReportTypeAsync(id, dto.ReportType, GetUserId(), true);
         if (!changed)
             return Error("Failed to change report type.", 400);
