@@ -36,7 +36,21 @@ public class FeedbackController : BaseController
         await _unitOfWork.Feedbacks.AddAsync(feedback);
         await _unitOfWork.SaveAsync();
 
-        return Created(feedback);
+        var response = new FeedbackResponseDto
+        {
+            Id = feedback.Id,
+            Subject = feedback.Subject,
+            Message = feedback.Message,
+            Rating = feedback.Rating,
+            IsReplied = feedback.IsReplied,
+            AdminReply = feedback.AdminReply,
+            UserId = feedback.UserId,
+            UserName = string.Empty, // Will not block serialization, but ideally we don't return entity directly
+            UserEmail = string.Empty,
+            CreatedAt = feedback.CreatedAt
+        };
+
+        return Created(response);
     }
 
     [HttpGet(ApiRoutes.Feedbacks.GetMyFeedbacks)]
@@ -45,7 +59,21 @@ public class FeedbackController : BaseController
         var userId = GetUserId();
         var feedbacks = await _unitOfWork.Feedbacks.GetUserFeedbacksAsync(userId);
 
-        return Success(feedbacks);
+        var response = feedbacks.Select(f => new FeedbackResponseDto
+        {
+            Id = f.Id,
+            Subject = f.Subject,
+            Message = f.Message,
+            Rating = f.Rating,
+            IsReplied = f.IsReplied,
+            AdminReply = f.AdminReply,
+            UserId = f.UserId,
+            UserName = f.User?.Name ?? string.Empty,
+            UserEmail = f.User?.Email ?? string.Empty,
+            CreatedAt = f.CreatedAt
+        });
+
+        return Success(response);
     }
 
     [HttpGet(ApiRoutes.Feedbacks.GetAllAdmin)]
@@ -53,7 +81,22 @@ public class FeedbackController : BaseController
     public async Task<IActionResult> GetAll([FromQuery] bool pendingOnly = false)
     {
         var feedbacks = await _unitOfWork.Feedbacks.GetFeedbacksForAdminAsync(pendingOnly);
-        return Success(feedbacks);
+
+        var response = feedbacks.Select(f => new FeedbackResponseDto
+        {
+            Id = f.Id,
+            Subject = f.Subject,
+            Message = f.Message,
+            Rating = f.Rating,
+            IsReplied = f.IsReplied,
+            AdminReply = f.AdminReply,
+            UserId = f.UserId,
+            UserName = f.User?.Name ?? string.Empty,
+            UserEmail = f.User?.Email ?? string.Empty,
+            CreatedAt = f.CreatedAt
+        });
+
+        return Success(response);
     }
 
     [HttpPost(ApiRoutes.Feedbacks.Reply)]
@@ -71,6 +114,6 @@ public class FeedbackController : BaseController
         _unitOfWork.Feedbacks.Update(feedback);
         await _unitOfWork.SaveAsync();
 
-        return Success(feedback);
+        return Success(new { message = "Reply added successfully." });
     }
 }
