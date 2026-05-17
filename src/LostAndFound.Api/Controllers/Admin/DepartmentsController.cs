@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace LostAndFound.Api.Controllers.Admin;
 
-[Authorize(Roles = AppRoles.AdminOrSuperAdmin)]
+[Authorize]
 public class DepartmentsController : BaseController
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -57,6 +57,7 @@ public class DepartmentsController : BaseController
         });
     }
 
+    [Authorize(Roles = AppRoles.AdminOrSuperAdmin)]
     [AuditLog("Created New Department")]
     [HttpPost(ApiRoutes.Departments.Create)]
     public async Task<IActionResult> Create([FromBody] DepartmentRequestDto dto)
@@ -102,6 +103,7 @@ public class DepartmentsController : BaseController
         }, "Department created successfully.");
     }
 
+    [Authorize(Roles = AppRoles.AdminOrSuperAdmin)]
     [AuditLog("Updated Department")]
     [HttpPut(ApiRoutes.Departments.Update)]
     public async Task<IActionResult> Update([FromRoute] int id, [FromBody] DepartmentRequestDto dto)
@@ -149,6 +151,7 @@ public class DepartmentsController : BaseController
         }, "Department updated successfully.");
     }
 
+    [Authorize(Roles = AppRoles.AdminOrSuperAdmin)]
     [AuditLog("Deleted Department")]
     [HttpDelete(ApiRoutes.Departments.Delete)]
     public async Task<IActionResult> Delete([FromRoute] int id)

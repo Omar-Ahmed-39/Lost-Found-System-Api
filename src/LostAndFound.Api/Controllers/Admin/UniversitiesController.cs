@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace LostAndFound.Api.Controllers.Admin;
 
-[Authorize(Roles = AppRoles.AdminOrSuperAdmin)]
+[Authorize]
 public class UniversitiesController : BaseController
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -46,6 +46,7 @@ public class UniversitiesController : BaseController
         });
     }
 
+    [Authorize(Roles = AppRoles.AdminOrSuperAdmin)]
     [AuditLog("Created New University")]
     [HttpPost(ApiRoutes.Universities.Create)]
     public async Task<IActionResult> Create([FromBody] UniversityRequestDto dto)
@@ -79,6 +80,7 @@ public class UniversitiesController : BaseController
         }, "University created successfully.");
     }
 
+    [Authorize(Roles = AppRoles.AdminOrSuperAdmin)]
     [AuditLog("Updated University")]
     [HttpPut(ApiRoutes.Universities.Update)]
     public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UniversityRequestDto dto)
@@ -111,6 +113,7 @@ public class UniversitiesController : BaseController
         }, "University updated successfully.");
     }
 
+    [Authorize(Roles = AppRoles.AdminOrSuperAdmin)]
     [AuditLog("Deleted University")]
     [HttpDelete(ApiRoutes.Universities.Delete)]
     public async Task<IActionResult> Delete([FromRoute] int id)
