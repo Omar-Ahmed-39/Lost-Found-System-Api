@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace LostAndFound.Api.Controllers.Admin;
 
-[Authorize(Roles = AppRoles.AdminOrSuperAdmin)]
+[Authorize]
 public class LocationsController : BaseController
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -19,7 +19,6 @@ public class LocationsController : BaseController
         _unitOfWork = unitOfWork;
     }
 
-    [AllowAnonymous]
     [HttpGet(ApiRoutes.Locations.GetAll)]
     public async Task<IActionResult> GetAll()
     {
@@ -61,6 +60,7 @@ public class LocationsController : BaseController
         });
     }
 
+    [Authorize(Roles = AppRoles.AdminOrSuperAdmin)]
     [AuditLog("Created New Location")]
     [HttpPost(ApiRoutes.Locations.Create)]
     public async Task<IActionResult> Create([FromBody] LocationRequestDto dto)
@@ -111,6 +111,7 @@ public class LocationsController : BaseController
         }, "Location created successfully.");
     }
 
+    [Authorize(Roles = AppRoles.AdminOrSuperAdmin)]
     [AuditLog("Updated Location")]
     [HttpPut(ApiRoutes.Locations.Update)]
     public async Task<IActionResult> Update([FromRoute] int id, [FromBody] LocationRequestDto dto)
@@ -163,6 +164,7 @@ public class LocationsController : BaseController
         }, "Location updated successfully.");
     }
 
+    [Authorize(Roles = AppRoles.AdminOrSuperAdmin)]
     [AuditLog("Deleted Location")]
     [HttpDelete(ApiRoutes.Locations.Delete)]
     public async Task<IActionResult> Delete([FromRoute] int id)

@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace LostAndFound.Api.Controllers.Admin;
 
-[Authorize(Roles = AppRoles.AdminOrSuperAdmin)]
+[Authorize]
 public class CategoriesController : BaseController
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -46,6 +46,7 @@ public class CategoriesController : BaseController
         });
     }
 
+    [Authorize(Roles = AppRoles.AdminOrSuperAdmin)]
     [AuditLog("Created New Category")]
     [HttpPost(ApiRoutes.Categories.Create)]
     public async Task<IActionResult> Create([FromBody] CategoryRequestDto dto)
@@ -79,6 +80,7 @@ public class CategoriesController : BaseController
         }, "Category created successfully.");
     }
 
+    [Authorize(Roles = AppRoles.AdminOrSuperAdmin)]
     [AuditLog("Updated Category")]
     [HttpPut(ApiRoutes.Categories.Update)]
     public async Task<IActionResult> Update([FromRoute] int id, [FromBody] CategoryRequestDto dto)
@@ -111,6 +113,7 @@ public class CategoriesController : BaseController
         }, "Category updated successfully.");
     }
 
+    [Authorize(Roles = AppRoles.AdminOrSuperAdmin)]
     [AuditLog("Deleted Category")]
     [HttpDelete(ApiRoutes.Categories.Delete)]
     public async Task<IActionResult> Delete([FromRoute] int id)
