@@ -19,6 +19,7 @@ public class LocationsController : BaseController
         _unitOfWork = unitOfWork;
     }
 
+    [AllowAnonymous]
     [HttpGet(ApiRoutes.Locations.GetAll)]
     public async Task<IActionResult> GetAll()
     {

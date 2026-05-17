@@ -18,6 +18,7 @@ public class DepartmentsController : BaseController
         _unitOfWork = unitOfWork;
     }
 
+    [AllowAnonymous]
     [HttpGet(ApiRoutes.Departments.GetAll)]
     public async Task<IActionResult> GetAll()
     {

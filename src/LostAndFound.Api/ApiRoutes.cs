@@ -17,7 +17,7 @@ public static class ApiRoutes
 
     public static class Universities
     {
-        public const string GetAll = Base + "/admin/universities";
+        public const string GetAll = Base + "/universities";
         public const string GetById = Base + "/admin/universities/{id}";
         public const string Create = Base + "/admin/universities";
         public const string Update = Base + "/admin/universities/{id}";
@@ -26,7 +26,9 @@ public static class ApiRoutes
 
     public static class Departments
     {
-        public const string GetAll = Base + "/admin/departments";
+        public const string GetAll = Base + "/departments";
+        // Public endpoint for mobile/any user
+        public const string GetAllPublic = Base + "/departments";
         public const string GetById = Base + "/admin/departments/{id}";
         public const string Create = Base + "/admin/departments";
         public const string Update = Base + "/admin/departments/{id}";
@@ -35,7 +37,7 @@ public static class ApiRoutes
 
     public static class Locations
     {
-        public const string GetAll = Base + "/admin/locations";
+        public const string GetAll = Base + "/locations";
         public const string GetById = Base + "/admin/locations/{id}";
         public const string Create = Base + "/admin/locations";
         public const string Update = Base + "/admin/locations/{id}";
@@ -44,7 +46,7 @@ public static class ApiRoutes
 
     public static class Categories
     {
-        public const string GetAll = Base + "/admin/categories";
+        public const string GetAll = Base + "/categories";
         public const string GetById = Base + "/admin/categories/{id}";
         public const string Create = Base + "/admin/categories";
         public const string Update = Base + "/admin/categories/{id}";
@@ -85,7 +87,7 @@ public static class ApiRoutes
     {
         public const string GetAllAdmin = Base + "/admin/feedbacks";
         public const string Reply = Base + "/admin/feedbacks/{id}/reply";
-        
+
         public const string Create = Base + "/feedbacks";
         public const string GetMyFeedbacks = Base + "/feedbacks/me";
     }
