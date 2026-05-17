@@ -98,7 +98,7 @@ public class ReportsController : BaseController
 
     [Authorize]
     [HttpPost(ApiRoutes.Reports.Create)]
-    public async Task<IActionResult> Create([FromBody] ItemReportRequestDto dto)
+    public async Task<IActionResult> Create([FromForm] ItemReportRequestDto dto)
     {
         var itemName = dto.ItemName?.Trim();
 
