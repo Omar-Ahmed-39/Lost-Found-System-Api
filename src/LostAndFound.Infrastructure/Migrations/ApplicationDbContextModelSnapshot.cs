@@ -17,7 +17,7 @@ namespace LostAndFound.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.7")
+                .HasAnnotation("ProductVersion", "10.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -615,6 +615,10 @@ namespace LostAndFound.Infrastructure.Migrations
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("avatarUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.HasKey("Id");
 
