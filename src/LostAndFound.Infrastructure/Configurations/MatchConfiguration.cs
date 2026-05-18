@@ -41,6 +41,7 @@ public class MatchConfiguration : IEntityTypeConfiguration<Match>
         builder.HasOne(m => m.MatchedByUser)
             .WithMany(u => u.Matches)
             .HasForeignKey(m => m.MatchedBy)
+            .IsRequired(false)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

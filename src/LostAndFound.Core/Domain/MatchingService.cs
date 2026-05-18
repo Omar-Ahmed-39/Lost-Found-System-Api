@@ -48,7 +48,7 @@ public class MatchingService : IMatchingService
             {
                 var lostId = report.ReportType == enReportType.Lost ? report.Id : candidate.Id;
                 var foundId = report.ReportType == enReportType.Found ? report.Id : candidate.Id;
-                potentialMatches.Add((Match.Create(lostId, foundId, matchScore, matchedBy: 0), candidate.Id));
+                potentialMatches.Add((Match.Create(lostId, foundId, matchScore, matchedBy: null), candidate.Id));
             }
         }
 

@@ -14,12 +14,12 @@ public class Match : BaseEntity
     // Foreign keys
     public int LostId { get; private set; }
     public int FoundId { get; private set; }
-    public int MatchedBy { get; private set; }
+    public int? MatchedBy { get; private set; }
 
     // Navigation properties
     public ItemReport LostItem { get; private set; } = default!;
     public ItemReport FoundItem { get; private set; } = default!;
-    public User MatchedByUser { get; private set; } = default!;
+    public User? MatchedByUser { get; private set; } = default!;
 
     // Required by EF Core
     private Match() { }
@@ -27,18 +27,18 @@ public class Match : BaseEntity
     /// <summary>
     /// Factory method for creating a new pending Match.
     /// </summary>
-    public static Match Create(int lostId, int foundId, double matchScore, int matchedBy)
+    public static Match Create(int lostId, int foundId, double matchScore, int? matchedBy)
     {
         return new Match
         {
-            LostId     = lostId,
-            FoundId    = foundId,
+            LostId = lostId,
+            FoundId = foundId,
             MatchScore = matchScore,
-            MatchedBy  = matchedBy,
-            Status     = enMatchStatus.Pending,
-            MatchDate  = DateTime.UtcNow,
-            CreatedAt  = DateTime.UtcNow,
-            UpdatedAt  = DateTime.UtcNow,
+            MatchedBy = matchedBy,
+            Status = enMatchStatus.Pending,
+            MatchDate = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
         };
     }
 
@@ -50,10 +50,10 @@ public class Match : BaseEntity
         if (Status != enMatchStatus.Pending)
             return false;
 
-        Status     = enMatchStatus.Confirmed;
+        Status = enMatchStatus.Confirmed;
         ReviewedBy = adminId;
         ReviewedAt = DateTime.UtcNow;
-        UpdatedAt  = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
 
         return true;
     }
@@ -67,10 +67,10 @@ public class Match : BaseEntity
         if (Status != enMatchStatus.Pending)
             return false;
 
-        Status     = enMatchStatus.Confirmed;
+        Status = enMatchStatus.Confirmed;
         ReviewedBy = userId;
         ReviewedAt = DateTime.UtcNow;
-        UpdatedAt  = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
 
         return true;
     }
@@ -86,11 +86,11 @@ public class Match : BaseEntity
         if (string.IsNullOrWhiteSpace(reason))
             return false;
 
-        Status          = enMatchStatus.Rejected;
+        Status = enMatchStatus.Rejected;
         RejectionReason = reason;
-        ReviewedBy      = adminId;
-        ReviewedAt      = DateTime.UtcNow;
-        UpdatedAt       = DateTime.UtcNow;
+        ReviewedBy = adminId;
+        ReviewedAt = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
 
         return true;
     }

@@ -29,7 +29,7 @@ public class MatchesController : BaseController
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetAllMatches(
         [FromQuery] int pageNumber = 1,
-        [FromQuery] int pageSize   = 10)
+        [FromQuery] int pageSize = 10)
     {
         var matches = await _unitOfWork.Matches.GetPagedAsync(pageNumber, pageSize, null, false);
         return Paged(matches.Items.Select(ToDto), pageNumber, pageSize, matches.TotalCount);
@@ -43,7 +43,7 @@ public class MatchesController : BaseController
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetPendingMatches(
         [FromQuery] int pageNumber = 1,
-        [FromQuery] int pageSize   = 10)
+        [FromQuery] int pageSize = 10)
     {
         var pending = await _unitOfWork.Matches.GetPagedAsync(
             pageNumber, pageSize,
@@ -77,12 +77,12 @@ public class MatchesController : BaseController
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> VerifyMatch(
         [FromRoute] int matchId,
-        [FromBody]  VerifyMatchDto verifyMatch)
+        [FromBody] VerifyMatchDto verifyMatch)
     {
         if (!verifyMatch.IsApproved && string.IsNullOrEmpty(verifyMatch.RejectionReason))
             return Error("Rejection reason is required when rejecting a match.");
 
-        var command   = new VerifyMatchCommand(matchId, GetUserId(), verifyMatch.IsApproved, verifyMatch.RejectionReason);
+        var command = new VerifyMatchCommand(matchId, GetUserId(), verifyMatch.IsApproved, verifyMatch.RejectionReason);
         var isSuccess = await Mediator.Send(command);
 
         if (!isSuccess)
@@ -194,17 +194,17 @@ public class MatchesController : BaseController
 
     private static MatchResponseDto ToDto(Core.Entities.Match match) => new()
     {
-        Id              = match.Id,
-        MatchScore      = match.MatchScore,
-        Status          = match.Status,
-        MatchDate       = match.MatchDate,
-        CreatedAt       = match.CreatedAt,
-        UpdatedAt       = match.UpdatedAt ?? match.CreatedAt,
+        Id = match.Id,
+        MatchScore = match.MatchScore,
+        Status = match.Status,
+        MatchDate = match.MatchDate,
+        CreatedAt = match.CreatedAt,
+        UpdatedAt = match.UpdatedAt ?? match.CreatedAt,
         RejectionReason = match.RejectionReason,
-        ReviewedBy      = match.ReviewedBy,
-        ReviewedAt      = match.ReviewedAt,
-        LostId          = match.LostId,
-        FoundId         = match.FoundId,
-        MatchedBy       = match.MatchedBy
+        ReviewedBy = match.ReviewedBy,
+        ReviewedAt = match.ReviewedAt,
+        LostId = match.LostId,
+        FoundId = match.FoundId,
+
     };
 }
