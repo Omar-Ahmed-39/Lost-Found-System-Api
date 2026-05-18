@@ -15,6 +15,12 @@ public static class ApiRoutes
         public const string Logout = Base + "/auth/logout";
     }
 
+    public static class Profile
+    {
+        public const string GetMyProfile = Base + "/profile/me";
+        public const string UpdateMyProfile = Base + "/profile/me";
+    }
+
     public static class Universities
     {
         public const string GetAll = Base + "/universities";
