@@ -59,10 +59,19 @@ public static class ApiRoutes
 
     public static class Matches
     {
-        public const string GetAll = Base + "/matches";
-        public const string GetPending = Base + "/matches/pending";
-        public const string GetById = Base + "/matches/{matchId}";
-        public const string Verify = Base + "/matches/{matchId}/verify";
+        // ── Admin routes ──────────────────────────────────────────────────────
+        public const string GetAll     = Base + "/admin/matches";
+        public const string GetPending = Base + "/admin/matches/pending";
+        public const string GetById    = Base + "/admin/matches/{matchId}";
+        public const string Verify     = Base + "/admin/matches/{matchId}/verify";
+
+        // ── User / App routes ─────────────────────────────────────────────────
+        /// <summary>GET  /api/v1/matches/{matchId}  — owner of the lost item only.</summary>
+        public const string GetMyMatchById = Base + "/matches/{matchId}";
+        /// <summary>POST /api/v1/matches/{matchId}/accept — owner of the lost item only.</summary>
+        public const string Accept         = Base + "/matches/{matchId}/accept";
+        /// <summary>POST /api/v1/matches/{matchId}/reject — owner of the lost item only.</summary>
+        public const string Reject         = Base + "/matches/{matchId}/reject";
     }
 
     public static class Notifications
