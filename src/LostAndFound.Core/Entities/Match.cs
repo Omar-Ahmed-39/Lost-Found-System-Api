@@ -31,35 +31,52 @@ public class Match : BaseEntity
     {
         return new Match
         {
-            LostId = lostId,
-            FoundId = foundId,
+            LostId     = lostId,
+            FoundId    = foundId,
             MatchScore = matchScore,
-            MatchedBy = matchedBy,
-            Status = enMatchStatus.Pending,
-            MatchDate = DateTime.UtcNow,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
+            MatchedBy  = matchedBy,
+            Status     = enMatchStatus.Pending,
+            MatchDate  = DateTime.UtcNow,
+            CreatedAt  = DateTime.UtcNow,
+            UpdatedAt  = DateTime.UtcNow,
         };
     }
 
     /// <summary>
-    /// Approves the match. Returns false if the match is not in a Pending state.
+    /// Approves the match (admin action). Returns false if not Pending.
     /// </summary>
     public bool Approve(int adminId)
     {
         if (Status != enMatchStatus.Pending)
             return false;
 
-        Status = enMatchStatus.Confirmed;
+        Status     = enMatchStatus.Confirmed;
         ReviewedBy = adminId;
         ReviewedAt = DateTime.UtcNow;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt  = DateTime.UtcNow;
 
         return true;
     }
 
     /// <summary>
-    /// Rejects the match. Returns false if the match is not in a Pending state.
+    /// Accepts the match (user action — the lost-item owner confirms the found item is theirs).
+    /// Returns false if not Pending.
+    /// </summary>
+    public bool Accept(int userId)
+    {
+        if (Status != enMatchStatus.Pending)
+            return false;
+
+        Status     = enMatchStatus.Confirmed;
+        ReviewedBy = userId;
+        ReviewedAt = DateTime.UtcNow;
+        UpdatedAt  = DateTime.UtcNow;
+
+        return true;
+    }
+
+    /// <summary>
+    /// Rejects the match. Returns false if not Pending or if reason is empty.
     /// </summary>
     public bool Reject(int adminId, string reason)
     {
@@ -69,11 +86,11 @@ public class Match : BaseEntity
         if (string.IsNullOrWhiteSpace(reason))
             return false;
 
-        Status = enMatchStatus.Rejected;
+        Status          = enMatchStatus.Rejected;
         RejectionReason = reason;
-        ReviewedBy = adminId;
-        ReviewedAt = DateTime.UtcNow;
-        UpdatedAt = DateTime.UtcNow;
+        ReviewedBy      = adminId;
+        ReviewedAt      = DateTime.UtcNow;
+        UpdatedAt       = DateTime.UtcNow;
 
         return true;
     }

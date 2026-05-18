@@ -27,6 +27,8 @@ public static class DependencyInjection
         // ── Unit of Work & Repositories ───────────────────────────────────────
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IFileService, FileService>();
+        services.AddScoped<IPushNotificationService, FirebaseNotificationService>();
+        services.AddScoped<IMatchingService, LostAndFound.Core.Domain.MatchingService>();
 
         // ── ASP.NET Core Identity ─────────────────────────────────────────────
         services.AddIdentity<User, Role>(options =>

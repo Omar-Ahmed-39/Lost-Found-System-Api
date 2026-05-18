@@ -1,5 +1,5 @@
 using LostAndFound.Core.Constants;
-﻿using LostAndFound.Api.DTOs.ItemReports;
+using LostAndFound.Api.DTOs.ItemReports;
 using LostAndFound.Core.Entities;
 using LostAndFound.Core.Enums;
 using LostAndFound.Core.Filters;
@@ -12,10 +12,17 @@ namespace LostAndFound.Api.Controllers;
 public class ReportsController : BaseController
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly ILogger<ReportsController> _logger;
 
-    public ReportsController(IUnitOfWork unitOfWork)
+    public ReportsController(
+        IUnitOfWork unitOfWork,
+        IServiceScopeFactory scopeFactory,
+        ILogger<ReportsController> logger)
     {
-        _unitOfWork = unitOfWork;
+        _unitOfWork   = unitOfWork;
+        _scopeFactory = scopeFactory;
+        _logger       = logger;
     }
 
     // =========================================
@@ -141,6 +148,24 @@ public class ReportsController : BaseController
 
         await _unitOfWork.ItemReports.AddAsync(report);
         await _unitOfWork.SaveAsync();
+
+        // Fire-and-forget background matching.
+        // We capture reportId (value type) to avoid closing over the disposed EF scope.
+        // A new DI scope is created so the background task gets its own DbContext lifetime.
+        var reportId = report.Id;
+        _ = Task.Run(async () =>
+        {
+            await using var scope = _scopeFactory.CreateAsyncScope();
+            var matchingService = scope.ServiceProvider.GetRequiredService<IMatchingService>();
+            try
+            {
+                await matchingService.ProcessMatchesForReportAsync(reportId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Background matching failed for report {ReportId}", reportId);
+            }
+        });
 
         return Created(new { report.Id }, "Report created successfully.");
     }

@@ -12,26 +12,28 @@ namespace LostAndFound.Infrastructure.Repository
         {
             _context = context;
 
-            Matches = new MatchRepository(context);
-            Claims = new ClaimRepository(context);
+            Matches    = new MatchRepository(context);
+            Claims     = new ClaimRepository(context);
             ItemReports = new ItemReportRepository(context);
-            Dashboard = new DashboardRepository(context, userManager);
+            Dashboard  = new DashboardRepository(context, userManager);
 
-            Locations = new GenericRepository<Location>(context);
-            Categories = new GenericRepository<Category>(context);
+            Users        = new GenericRepository<User>(context);
+            Locations    = new GenericRepository<Location>(context);
+            Categories   = new GenericRepository<Category>(context);
             Notifications = new NotificationRepository(context);
             Universities = new GenericRepository<University>(context);
-            Departments = new GenericRepository<Department>(context);
-            Feedbacks = new FeedbackRepository(context);
-            AuditLogs = new GenericRepository<AuditLog>(context);
-            Handovers = new HandoverRepository(context);
+            Departments  = new GenericRepository<Department>(context);
+            Feedbacks    = new FeedbackRepository(context);
+            AuditLogs    = new GenericRepository<AuditLog>(context);
+            Handovers    = new HandoverRepository(context);
         }
 
         public IGenericRepository<Location> Locations { get; }
         public IGenericRepository<Category> Categories { get; }
-        public INotificationRepository Notifications { get; }
         public IGenericRepository<University> Universities { get; }
         public IGenericRepository<Department> Departments { get; }
+        public IGenericRepository<User> Users { get; }
+        public INotificationRepository Notifications { get; }
 
         public IItemReportRepository ItemReports { get; }
         public IMatchRepository Matches { get; }
