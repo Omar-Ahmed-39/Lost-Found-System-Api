@@ -41,7 +41,7 @@ public class ItemReportRepository : GenericRepository<ItemReport>, IItemReportRe
         {
             var search = filter.Search.Trim();
             query = query.Where(r =>
-                r.ItemName.Contains(search) ||
+                r.ItemName.ToLower().Contains(search.ToLower()) ||
                 r.Description.Contains(search) ||
                 r.Category.Name.Contains(search) ||
                 r.Location.Name.Contains(search));
