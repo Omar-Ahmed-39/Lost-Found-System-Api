@@ -1,4 +1,4 @@
-﻿namespace LostAndFound.Infrastructure.Configurations;
+namespace LostAndFound.Infrastructure.Configurations;
 
 public class MatchConfiguration : IEntityTypeConfiguration<Match>
 {
@@ -18,6 +18,11 @@ public class MatchConfiguration : IEntityTypeConfiguration<Match>
         builder.Property(m => m.MatchDate)
             .IsRequired();
 
+        // Prevent duplicate matches for the same Lost+Found pair.
+        // This is the DB-level safety net; the application-level dedup guard
+        // in MatchingService is the first line of defence.
+        builder.HasIndex(m => new { m.LostId, m.FoundId }).IsUnique();
+
         // Relationships
 
         // Match -> LostItem (many-to-one)
@@ -36,6 +41,7 @@ public class MatchConfiguration : IEntityTypeConfiguration<Match>
         builder.HasOne(m => m.MatchedByUser)
             .WithMany(u => u.Matches)
             .HasForeignKey(m => m.MatchedBy)
+            .IsRequired(false)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

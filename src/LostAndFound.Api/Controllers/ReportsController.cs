@@ -12,14 +12,22 @@ namespace LostAndFound.Api.Controllers;
 
 public class ReportsController : BaseController
 {
-    private readonly IUnitOfWork _unitOfWork;
-    private readonly IFileService _fileService;
+   private readonly IUnitOfWork _unitOfWork;
+   private readonly IFileService _fileService;
+   private readonly IServiceScopeFactory _scopeFactory;
+   private readonly ILogger<ReportsController> _logger;
 
-    public ReportsController(IUnitOfWork unitOfWork, IFileService fileService)
-    {
-        _unitOfWork = unitOfWork;
-        _fileService = fileService;
-    }
+public ReportsController(
+    IUnitOfWork unitOfWork,
+    IFileService fileService,
+    IServiceScopeFactory scopeFactory,
+    ILogger<ReportsController> logger)
+{
+    _unitOfWork = unitOfWork;
+    _fileService = fileService;
+    _scopeFactory = scopeFactory;
+    _logger = logger;
+}
 
     // =========================================
     // User / App Endpoints
@@ -150,40 +158,59 @@ public class ReportsController : BaseController
         };
 
         await _unitOfWork.ItemReports.AddAsync(report);
-        await _unitOfWork.SaveAsync();
+await _unitOfWork.SaveAsync();
 
-        if (dto.Images != null && dto.Images.Any())
+// ✅ Upload images
+if (dto.Images != null && dto.Images.Any())
+{
+    foreach (var image in dto.Images)
+    {
+        var extension = Path.GetExtension(image.FileName).ToLower();
+
+        if (!FileSettings.AllowedExtensions.Contains(extension))
+            return Error("Invalid image format.", 400);
+
+        if (image.Length > FileSettings.MaxSizeMB * 1024 * 1024)
+            return Error("Image size too large.", 400);
+
+        if (image.Length > 0)
         {
-            foreach (var image in dto.Images)
+            var filePath = await _fileService.UploadFileAsync(
+                image.OpenReadStream(),
+                image.FileName,
+                "Reports"
+            );
+
+            var attachment = new ItemAttachment
             {
-                var extension = Path.GetExtension(image.FileName).ToLower();
+                FilePath = filePath,
+                ReportId = report.Id
+            };
 
-                if (!FileSettings.AllowedExtensions.Contains(extension))
-                    return Error("Invalid image format.", 400);
-
-                if (image.Length > FileSettings.MaxSizeMB * 1024 * 1024)
-                    return Error("Image size too large.", 400);
-
-                if (image.Length > 0)
-                {
-                    var filePath = await _fileService.UploadFileAsync(
-                        image.OpenReadStream(),
-                        image.FileName,
-                        "Reports"
-                    );
-
-                    var attachment = new ItemAttachment
-                    {
-                        FilePath = filePath,
-                        ReportId = report.Id
-                    };
-
-                    await _unitOfWork.ItemAttachments.AddAsync(attachment);
-                }
-            }
-
-            await _unitOfWork.SaveAsync();
+            await _unitOfWork.ItemAttachments.AddAsync(attachment);
         }
+    }
+
+    await _unitOfWork.SaveAsync();
+}
+
+// ✅ Background matching (from main branch)
+var reportId = report.Id;
+
+_ = Task.Run(async () =>
+{
+    await using var scope = _scopeFactory.CreateAsyncScope();
+    var matchingService = scope.ServiceProvider.GetRequiredService<IMatchingService>();
+
+    try
+    {
+        await matchingService.ProcessMatchesForReportAsync(reportId);
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Background matching failed for report {ReportId}", reportId);
+    }
+});
 
         return Created(new { report.Id }, "Report created successfully.");
     }

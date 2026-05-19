@@ -14,12 +14,12 @@ public class Match : BaseEntity
     // Foreign keys
     public int LostId { get; private set; }
     public int FoundId { get; private set; }
-    public int MatchedBy { get; private set; }
+    public int? MatchedBy { get; private set; }
 
     // Navigation properties
     public ItemReport LostItem { get; private set; } = default!;
     public ItemReport FoundItem { get; private set; } = default!;
-    public User MatchedByUser { get; private set; } = default!;
+    public User? MatchedByUser { get; private set; } = default!;
 
     // Required by EF Core
     private Match() { }
@@ -27,7 +27,7 @@ public class Match : BaseEntity
     /// <summary>
     /// Factory method for creating a new pending Match.
     /// </summary>
-    public static Match Create(int lostId, int foundId, double matchScore, int matchedBy)
+    public static Match Create(int lostId, int foundId, double matchScore, int? matchedBy)
     {
         return new Match
         {
@@ -43,7 +43,7 @@ public class Match : BaseEntity
     }
 
     /// <summary>
-    /// Approves the match. Returns false if the match is not in a Pending state.
+    /// Approves the match (admin action). Returns false if not Pending.
     /// </summary>
     public bool Approve(int adminId)
     {
@@ -59,7 +59,24 @@ public class Match : BaseEntity
     }
 
     /// <summary>
-    /// Rejects the match. Returns false if the match is not in a Pending state.
+    /// Accepts the match (user action — the lost-item owner confirms the found item is theirs).
+    /// Returns false if not Pending.
+    /// </summary>
+    public bool Accept(int userId)
+    {
+        if (Status != enMatchStatus.Pending)
+            return false;
+
+        Status = enMatchStatus.Confirmed;
+        ReviewedBy = userId;
+        ReviewedAt = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
+
+        return true;
+    }
+
+    /// <summary>
+    /// Rejects the match. Returns false if not Pending or if reason is empty.
     /// </summary>
     public bool Reject(int adminId, string reason)
     {

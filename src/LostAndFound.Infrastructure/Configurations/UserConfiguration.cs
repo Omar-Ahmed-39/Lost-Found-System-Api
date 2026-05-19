@@ -20,6 +20,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         //    .IsRequired()
         //    .HasMaxLength(500);
 
+        builder.Property(u => u.avatarUrl)
+            .HasMaxLength(500);
+
         builder.Property(u => u.FcmToken)
             .IsRequired(false)
             .HasMaxLength(500);
