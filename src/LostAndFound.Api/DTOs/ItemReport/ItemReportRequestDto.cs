@@ -26,7 +26,5 @@ public class ItemReportRequestDto
 
     [Range(1, int.MaxValue, ErrorMessage = "A valid category is required.")]
     public int CategoryId { get; set; }
-
-    [Required]
     public List<IFormFile>? Images { get; set; }
 }
