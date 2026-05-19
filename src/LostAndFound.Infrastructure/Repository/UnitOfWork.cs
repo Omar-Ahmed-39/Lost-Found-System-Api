@@ -1,6 +1,7 @@
-using Microsoft.AspNetCore.Identity;
 using LostAndFound.Core.Entities;
 using LostAndFound.Core.Interfaces;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace LostAndFound.Infrastructure.Repository
 {
@@ -25,6 +26,7 @@ namespace LostAndFound.Infrastructure.Repository
             Feedbacks = new FeedbackRepository(context);
             AuditLogs = new GenericRepository<AuditLog>(context);
             Handovers = new HandoverRepository(context);
+            ItemAttachments = new GenericRepository<ItemAttachment>(context);
         }
 
         public IGenericRepository<Location> Locations { get; }
@@ -40,6 +42,12 @@ namespace LostAndFound.Infrastructure.Repository
         public IClaimRepository Claims { get; }
         public IGenericRepository<AuditLog> AuditLogs { get; }
         public IHandoverRepository Handovers { get; }
+        public IGenericRepository<ItemAttachment> ItemAttachments { get; }
+
+        public async Task<IDbContextTransaction> BeginTransactionAsync()
+        {
+            return await _context.Database.BeginTransactionAsync();
+        }
 
         public void Dispose()
         {
