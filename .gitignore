@@ -79,3 +79,4 @@ secrets.*
 publish/
 
 /.cursorrulesFirebase.json
+src/LostAndFound.Api/config/Firebase.json

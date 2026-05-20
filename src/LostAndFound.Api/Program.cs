@@ -15,6 +15,18 @@ builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(typeof(VerifyMatchCommand).Assembly));
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp", policy =>
+    {
+        policy.WithOrigins("http://localhost:8081", "http://192.168.1.107:8081")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
+
 builder.Services.AddAuthentication();
 builder.Services.AddAuthorization();
 
@@ -51,6 +63,8 @@ if (app.Environment.IsDevelopment())
 app.UseStaticFiles();
 
 app.UseHttpsRedirection();
+
+app.UseCors("AllowReactApp");
 
 app.UseStaticFiles();
 

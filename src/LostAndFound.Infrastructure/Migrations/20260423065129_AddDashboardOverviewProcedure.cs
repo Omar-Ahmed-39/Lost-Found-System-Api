@@ -11,7 +11,7 @@ namespace LostAndFound.Infrastructure.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             var sp = @"
-                CREATE PROCEDURE sp_GetOverviewStats
+                CREATE OR ALTER PROCEDURE sp_GetOverviewStats
                     @StartOfThisWeek DATETIME2,
                     @StartOfLastWeek DATETIME2
                 AS
@@ -25,23 +25,23 @@ namespace LostAndFound.Infrastructure.Migrations
 
                     -- Reports Metrics
                     SELECT 
-                        @TotalActiveReports = SUM(CASE WHEN StatusType IN (1, 2) THEN 1 ELSE 0 END),
-                        @ActiveReportsThisWeek = SUM(CASE WHEN StatusType IN (1, 2) AND CreatedAt >= @StartOfThisWeek THEN 1 ELSE 0 END),
-                        @TotalResolvedReports = SUM(CASE WHEN StatusType IN (6, 8) THEN 1 ELSE 0 END),
+                        @TotalActiveReports = SUM(CASE WHEN StatusType IN ('Open', 'UnderReview') THEN 1 ELSE 0 END),
+                        @ActiveReportsThisWeek = SUM(CASE WHEN StatusType IN ('Open', 'UnderReview') AND CreatedAt >= @StartOfThisWeek THEN 1 ELSE 0 END),
+                        @TotalResolvedReports = SUM(CASE WHEN StatusType IN ('Returned', 'Closed') THEN 1 ELSE 0 END),
                         @TotalReports = COUNT(*)
                     FROM ItemReports;
 
                     -- Claims Metrics
                     SELECT 
-                        @TotalPendingClaims = SUM(CASE WHEN ApprovalStatus = 1 THEN 1 ELSE 0 END),
-                        @PendingClaimsLastWeek = SUM(CASE WHEN ApprovalStatus = 1 AND CreatedAt >= @StartOfLastWeek AND CreatedAt < @StartOfThisWeek THEN 1 ELSE 0 END)
+                        @TotalPendingClaims = SUM(CASE WHEN ApprovalStatus = 'Pending' THEN 1 ELSE 0 END),
+                        @PendingClaimsLastWeek = SUM(CASE WHEN ApprovalStatus = 'Pending' AND CreatedAt >= @StartOfLastWeek AND CreatedAt < @StartOfThisWeek THEN 1 ELSE 0 END)
                     FROM Claims;
 
                     -- Users Metrics
                     SELECT 
                         @TotalUsersCount = COUNT(*),
                         @NewUsersThisWeek = SUM(CASE WHEN Created >= @StartOfThisWeek THEN 1 ELSE 0 END)
-                    FROM AspNetUsers;
+                    FROM Users;
 
                     -- Resolve NULLs
                     SET @TotalActiveReports = ISNULL(@TotalActiveReports, 0);
