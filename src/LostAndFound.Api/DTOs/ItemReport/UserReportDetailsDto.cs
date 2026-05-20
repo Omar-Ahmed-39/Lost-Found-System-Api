@@ -6,7 +6,7 @@ public class UserReportDetailsDto
 {
     public int Id { get; set; }
     public string ItemName { get; set; } = string.Empty;
-    public string ImagePath { get; set; } = string.Empty;
+    public List<ImageDto> Images { get; set; } = new();
     public enReportType ReportType { get; set; }
     public string LocationName { get; set; } = string.Empty;
     public DateTime DateReported { get; set; }
