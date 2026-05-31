@@ -4,6 +4,7 @@ using LostAndFound.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LostAndFound.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260518074333_AddImageUrlToUser")]
+    partial class AddImageUrlToUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -417,7 +420,7 @@ namespace LostAndFound.Infrastructure.Migrations
                     b.Property<double>("MatchScore")
                         .HasColumnType("float");
 
-                    b.Property<int?>("MatchedBy")
+                    b.Property<int>("MatchedBy")
                         .HasColumnType("int");
 
                     b.Property<string>("RejectionReason")
@@ -440,10 +443,9 @@ namespace LostAndFound.Infrastructure.Migrations
 
                     b.HasIndex("FoundId");
 
-                    b.HasIndex("MatchedBy");
+                    b.HasIndex("LostId");
 
-                    b.HasIndex("LostId", "FoundId")
-                        .IsUnique();
+                    b.HasIndex("MatchedBy");
 
                     b.ToTable("Matches", (string)null);
                 });
@@ -888,7 +890,8 @@ namespace LostAndFound.Infrastructure.Migrations
                     b.HasOne("LostAndFound.Core.Entities.User", "MatchedByUser")
                         .WithMany("Matches")
                         .HasForeignKey("MatchedBy")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("FoundItem");
 

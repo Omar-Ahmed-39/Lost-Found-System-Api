@@ -11,7 +11,6 @@ public class FileService : IFileService
 
     public FileService()
     {
-        // Resolving the base wwwroot path using standard built-in classes
         _basePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
     }
 
@@ -20,7 +19,12 @@ public class FileService : IFileService
         if (fileStream == null || fileStream.Length == 0)
             throw new ArgumentException("File stream cannot be null or empty.");
 
-        var uniqueFileName = $"{Guid.NewGuid()}_{Path.GetFileName(fileName)}";
+        
+        fileName = Path.GetFileName(fileName);
+
+        
+        var uniqueFileName = $"{Guid.NewGuid()}_{fileName}";
+
         var uploadsFolder = Path.Combine(_basePath, folderName);
 
         if (!Directory.Exists(uploadsFolder))
@@ -28,9 +32,9 @@ public class FileService : IFileService
             Directory.CreateDirectory(uploadsFolder);
         }
 
-        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+        var fullPath = Path.Combine(uploadsFolder, uniqueFileName);
 
-        using (var destinationStream = new FileStream(filePath, FileMode.Create))
+        using (var destinationStream = new FileStream(fullPath, FileMode.Create))
         {
             await fileStream.CopyToAsync(destinationStream);
         }

@@ -7,23 +7,33 @@ namespace LostAndFound.Infrastructure.Repository;
 public class FirebaseNotificationService : IPushNotificationService
 {
     private readonly ILogger<FirebaseNotificationService> _logger;
+
     public FirebaseNotificationService(ILogger<FirebaseNotificationService> logger)
     {
         _logger = logger;
     }
-    public async Task<bool> SendPushNotificationAsync(string deviceToken, string title, string body)
+
+    public async Task<bool> SendPushNotificationAsync(
+        string deviceToken,
+        string title,
+        string body,
+        Dictionary<string, string>? data = null)
     {
         if (string.IsNullOrEmpty(deviceToken))
             return false;
 
-        var message = new Message()
+        var message = new Message
         {
             Token = deviceToken,
+            // Notification = the OS visual banner (title + body in tray)
             Notification = new Notification
             {
                 Title = title,
-                Body = body
-            }
+                Body  = body
+            },
+            // Data = key-value payload delivered to the app's onMessage handler.
+            // The mobile app reads "matchId" here to navigate to the correct screen.
+            Data = data ?? new Dictionary<string, string>()
         };
 
         try
@@ -36,11 +46,16 @@ public class FirebaseNotificationService : IPushNotificationService
         {
             if (ex.MessagingErrorCode == MessagingErrorCode.Unregistered)
             {
-                _logger.LogWarning("Device token {DeviceToken} is unregistered. Remove it from the database.", deviceToken);
+                _logger.LogWarning(
+                    "Device token {DeviceToken} is unregistered. Remove it from the database.",
+                    deviceToken);
             }
             else
             {
-                _logger.LogError(ex, "Firebase FCM error sending to {DeviceToken}: {Message}", deviceToken, ex.Message);
+                _logger.LogError(
+                    ex,
+                    "Firebase FCM error sending to {DeviceToken}: {Message}",
+                    deviceToken, ex.Message);
             }
             return false;
         }

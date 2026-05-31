@@ -34,9 +34,12 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Server=db;Database=LostAndFoundDb;User Id=sa;Password=SuperSecretP@ssw0rd!;TrustServerCertificate=True;
       - ASPNETCORE_URLS=http://+:8080
+    volumes:
+      - uploaded_files:/app/wwwroot
     depends_on:
       migration:
         condition: service_completed_successfully
   
 volumes:
   sql_data:
+  uploaded_files:

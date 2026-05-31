@@ -1,4 +1,5 @@
 using LostAndFound.Core.Entities;
+using Microsoft.EntityFrameworkCore.Storage;
 namespace LostAndFound.Core.Interfaces;
 
 public interface IUnitOfWork : IDisposable
@@ -7,6 +8,7 @@ public interface IUnitOfWork : IDisposable
     IGenericRepository<Category> Categories { get; }
     IGenericRepository<University> Universities { get; }
     IGenericRepository<Department> Departments { get; }
+    IGenericRepository<User> Users { get; }
     INotificationRepository Notifications { get; }
     IItemReportRepository ItemReports { get; }
     IMatchRepository Matches { get; }
@@ -15,5 +17,7 @@ public interface IUnitOfWork : IDisposable
     IClaimRepository Claims { get; }
     IGenericRepository<AuditLog> AuditLogs { get; }
     IHandoverRepository Handovers { get; }
+    IGenericRepository<ItemAttachment> ItemAttachments { get; }
+    Task<IDbContextTransaction> BeginTransactionAsync();
     Task<int> SaveAsync();
 }

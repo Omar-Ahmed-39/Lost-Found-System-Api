@@ -6,6 +6,7 @@ public class User : IdentityUser<int>
 {
     public string Name { get; set; } = string.Empty;
     public bool IsActive { get; set; }
+    public string? avatarUrl { get; set; }
     public DateTime? LastLoginAt { get; set; }
     public string? FcmToken { get; set; }
     public DateTime Created { get; set; }
