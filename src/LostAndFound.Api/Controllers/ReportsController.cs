@@ -49,8 +49,12 @@ public class ReportsController : BaseController
             ImagePath = r.Attachments.FirstOrDefault() != null
                 ? r.Attachments.First().FilePath
                 : string.Empty,
+            
+            ReportType = r.ReportType.ToString(),
+            Status = r.StatusType.ToString(),
+            LocationName = r.Location.Name,
+            ReporterName = r.User.Name,
             DateReported = r.DateReported,
-            ReportType = r.ReportType
         });
 
         return Paged(response, pageNumber, pageSize, result.TotalCount);
@@ -68,10 +72,17 @@ public class ReportsController : BaseController
         {
             Id = report.Id,
             ItemName = report.ItemName,
-            ImagePath = report.Attachments.FirstOrDefault()?.FilePath ?? string.Empty,
-            ReportType = report.ReportType,
+            Images = report.Attachments.Select(a => new ImageDto
+            {
+                Id = a.Id,
+                Path = a.FilePath
+            }).ToList(),
+
+            ReportType = report.ReportType.ToString(),
             LocationName = report.Location.Name,
-            DateReported = report.DateReported
+            DateReported = report.DateReported,
+
+            Description = report.Description 
         };
 
         return Success(response);
