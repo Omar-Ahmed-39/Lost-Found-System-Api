@@ -54,15 +54,24 @@ public ReportsController(
         var result = await _unitOfWork.ItemReports.GetFilteredAsync(filter, pageNumber, pageSize, false);
 
         var response = result.Items.Select(r => new ReportListDto
-        {
-            Id = r.Id,
-            ItemName = r.ItemName,
-            ImagePath = r.Attachments
-            .Select(a => a.FilePath)
-            .FirstOrDefault() ?? string.Empty,
-            DateReported = r.DateReported,
-            ReportType = r.ReportType
-        });
+{
+    Id = r.Id,
+    ItemName = r.ItemName,
+
+    ImagePath = r.Attachments
+        .Select(a => a.FilePath)
+        .FirstOrDefault() ?? string.Empty,
+
+    ReportType = r.ReportType.ToString(),
+
+    Status = r.StatusType.ToString(),
+
+    LocationName = r.Location.Name,
+
+    ReporterName = r.User.Name,
+
+    DateReported = r.DateReported,
+});
 
         return Paged(response, pageNumber, pageSize, result.TotalCount);
     }
@@ -84,9 +93,12 @@ public ReportsController(
                 Id = a.Id,
                 Path = a.FilePath
             }).ToList(),
-            ReportType = report.ReportType,
+
+            ReportType = report.ReportType.ToString(),
             LocationName = report.Location.Name,
-            DateReported = report.DateReported
+            DateReported = report.DateReported,
+
+            Description = report.Description 
         };
 
         return Success(response);
