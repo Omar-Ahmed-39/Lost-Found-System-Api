@@ -20,4 +20,8 @@
     <ProjectReference Include="..\LostAndFound.Infrastructure\LostAndFound.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\" />
+  </ItemGroup>
+
 </Project>
