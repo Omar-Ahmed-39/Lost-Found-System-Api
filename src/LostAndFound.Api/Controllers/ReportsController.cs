@@ -12,22 +12,22 @@ namespace LostAndFound.Api.Controllers;
 
 public class ReportsController : BaseController
 {
-   private readonly IUnitOfWork _unitOfWork;
-   private readonly IFileService _fileService;
-   private readonly IServiceScopeFactory _scopeFactory;
-   private readonly ILogger<ReportsController> _logger;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IFileService _fileService;
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly ILogger<ReportsController> _logger;
 
-public ReportsController(
-    IUnitOfWork unitOfWork,
-    IFileService fileService,
-    IServiceScopeFactory scopeFactory,
-    ILogger<ReportsController> logger)
-{
-    _unitOfWork = unitOfWork;
-    _fileService = fileService;
-    _scopeFactory = scopeFactory;
-    _logger = logger;
-}
+    public ReportsController(
+        IUnitOfWork unitOfWork,
+        IFileService fileService,
+        IServiceScopeFactory scopeFactory,
+        ILogger<ReportsController> logger)
+    {
+        _unitOfWork = unitOfWork;
+        _fileService = fileService;
+        _scopeFactory = scopeFactory;
+        _logger = logger;
+    }
 
     // =========================================
     // User / App Endpoints
@@ -54,24 +54,24 @@ public ReportsController(
         var result = await _unitOfWork.ItemReports.GetFilteredAsync(filter, pageNumber, pageSize, false);
 
         var response = result.Items.Select(r => new ReportListDto
-{
-    Id = r.Id,
-    ItemName = r.ItemName,
+        {
+            Id = r.Id,
+            ItemName = r.ItemName,
 
-    ImagePath = r.Attachments
+            ImagePath = r.Attachments
         .Select(a => a.FilePath)
         .FirstOrDefault() ?? string.Empty,
 
-    ReportType = r.ReportType.ToString(),
+            ReportType = r.ReportType.ToString(),
 
-    Status = r.StatusType.ToString(),
+            Status = r.StatusType.ToString(),
 
-    LocationName = r.Location.Name,
+            LocationName = r.Location.Name,
 
-    ReporterName = r.User.Name,
+            ReporterName = r.User.Name,
 
-    DateReported = r.DateReported,
-});
+            DateReported = r.DateReported,
+        });
 
         return Paged(response, pageNumber, pageSize, result.TotalCount);
     }
@@ -88,7 +88,7 @@ public ReportsController(
         {
             Id = report.Id,
             ItemName = report.ItemName,
-            Images = report.Attachments.Select(a => new ImageDto
+            Images = report.Attachments.Select(a => new LostAndFound.Api.DTOs.ItemReports.ImageDto
             {
                 Id = a.Id,
                 Path = a.FilePath
@@ -98,7 +98,7 @@ public ReportsController(
             LocationName = report.Location.Name,
             DateReported = report.DateReported,
 
-            Description = report.Description 
+            Description = report.Description
         };
 
         return Success(response);
@@ -170,59 +170,59 @@ public ReportsController(
         };
 
         await _unitOfWork.ItemReports.AddAsync(report);
-await _unitOfWork.SaveAsync();
+        await _unitOfWork.SaveAsync();
 
-// ✅ Upload images
-if (dto.Images != null && dto.Images.Any())
-{
-    foreach (var image in dto.Images)
-    {
-        var extension = Path.GetExtension(image.FileName).ToLower();
-
-        if (!FileSettings.AllowedExtensions.Contains(extension))
-            return Error("Invalid image format.", 400);
-
-        if (image.Length > FileSettings.MaxSizeMB * 1024 * 1024)
-            return Error("Image size too large.", 400);
-
-        if (image.Length > 0)
+        // ✅ Upload images
+        if (dto.Images != null && dto.Images.Any())
         {
-            var filePath = await _fileService.UploadFileAsync(
-                image.OpenReadStream(),
-                image.FileName,
-                "Reports"
-            );
-
-            var attachment = new ItemAttachment
+            foreach (var image in dto.Images)
             {
-                FilePath = filePath,
-                ReportId = report.Id
-            };
+                var extension = Path.GetExtension(image.FileName).ToLower();
 
-            await _unitOfWork.ItemAttachments.AddAsync(attachment);
+                if (!FileSettings.AllowedExtensions.Contains(extension))
+                    return Error("Invalid image format.", 400);
+
+                if (image.Length > FileSettings.MaxSizeMB * 1024 * 1024)
+                    return Error("Image size too large.", 400);
+
+                if (image.Length > 0)
+                {
+                    var filePath = await _fileService.UploadFileAsync(
+                        image.OpenReadStream(),
+                        image.FileName,
+                        "Reports"
+                    );
+
+                    var attachment = new ItemAttachment
+                    {
+                        FilePath = filePath,
+                        ReportId = report.Id
+                    };
+
+                    await _unitOfWork.ItemAttachments.AddAsync(attachment);
+                }
+            }
+
+            await _unitOfWork.SaveAsync();
         }
-    }
 
-    await _unitOfWork.SaveAsync();
-}
+        // ✅ Background matching (from main branch)
+        var reportId = report.Id;
 
-// ✅ Background matching (from main branch)
-var reportId = report.Id;
+        _ = Task.Run(async () =>
+        {
+            await using var scope = _scopeFactory.CreateAsyncScope();
+            var matchingService = scope.ServiceProvider.GetRequiredService<IMatchingService>();
 
-_ = Task.Run(async () =>
-{
-    await using var scope = _scopeFactory.CreateAsyncScope();
-    var matchingService = scope.ServiceProvider.GetRequiredService<IMatchingService>();
-
-    try
-    {
-        await matchingService.ProcessMatchesForReportAsync(reportId);
-    }
-    catch (Exception ex)
-    {
-        _logger.LogError(ex, "Background matching failed for report {ReportId}", reportId);
-    }
-});
+            try
+            {
+                await matchingService.ProcessMatchesForReportAsync(reportId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Background matching failed for report {ReportId}", reportId);
+            }
+        });
 
         return Created(new { report.Id }, "Report created successfully.");
     }
