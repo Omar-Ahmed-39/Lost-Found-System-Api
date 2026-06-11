@@ -96,6 +96,11 @@ public static class ApiRoutes
         public const string GetStats = Base + "/admin/dashboard/stats";
     }
 
+    public static class AuditLogs
+    {
+        public const string GetAll = Base + "/admin/audit-logs";
+    }
+
     public static class Feedbacks
     {
         public const string GetAllAdmin = Base + "/admin/feedbacks";
