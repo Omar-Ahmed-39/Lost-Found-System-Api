@@ -235,13 +235,29 @@ public class ReportsController : BaseController
         if (report == null)
             return Error("Report not found.", 404);
 
-        var locationExists = await _unitOfWork.Locations.ExistsAsync(l => l.Id == dto.LocationId);
-        if (!locationExists)
-            return Error("Selected location does not exist.", 400);
+        if (dto.LocationId.HasValue && dto.LocationId.Value > 0)
+        {
+            var locationExists =
+                await _unitOfWork.Locations.ExistsAsync(
+                    l => l.Id == dto.LocationId.Value);
 
-        var categoryExists = await _unitOfWork.Categories.ExistsAsync(c => c.Id == dto.CategoryId);
-        if (!categoryExists)
-            return Error("Selected category does not exist.", 400);
+            if (!locationExists)
+                return Error("Selected location does not exist.", 400);
+
+            report.LocationId = dto.LocationId.Value;
+        }
+
+        if (dto.CategoryId.HasValue && dto.CategoryId.Value > 0)
+        {
+            var categoryExists =
+                await _unitOfWork.Categories.ExistsAsync(
+                    c => c.Id == dto.CategoryId.Value);
+
+            if (!categoryExists)
+                return Error("Selected category does not exist.", 400);
+
+            report.CategoryId = dto.CategoryId.Value;
+        }
 
         var currentUserId = GetUserId();
         bool isAdminOrSuperAdmin = User.IsInRole(AppRoles.Admin) || User.IsInRole(AppRoles.SuperAdmin);
@@ -252,24 +268,42 @@ public class ReportsController : BaseController
             return StatusCode(403, ApiResponse<object>.Failure("You do not have permission to edit this report."));
         }
 
-        if (!Enum.IsDefined(typeof(enReportType), dto.ReportType))
-            return Error("Invalid report type.", 400);
+        if (dto.ReportType.HasValue)
+        {
+            if (!Enum.IsDefined(typeof(enReportType), dto.ReportType.Value))
+                return Error("Invalid report type.", 400);
 
-        if (!Enum.IsDefined(typeof(enConditionType), dto.ConditionType))
-            return Error("Invalid condition type.", 400);
+            report.ReportType = dto.ReportType.Value;
+        }
+
+        if (dto.ConditionType.HasValue)
+        {
+            if (!Enum.IsDefined(typeof(enConditionType), dto.ConditionType.Value))
+                return Error("Invalid condition type.", 400);
+
+            report.ConditionType = dto.ConditionType.Value;
+        }
 
 
-        var itemName = dto.ItemName?.Trim();
-        if (string.IsNullOrWhiteSpace(itemName))
-            return Error("Item name is required.", 400);
+        if (!string.IsNullOrWhiteSpace(dto.ItemName))
+        {
+            report.ItemName = dto.ItemName.Trim();
+        }
 
-        report.ItemName = itemName;
-        report.Color = dto.Color?.Trim();
-        report.ConditionType = dto.ConditionType;
-        report.Description = dto.Description?.Trim();
-        report.LocationId = dto.LocationId;
-        report.CategoryId = dto.CategoryId;
-        report.DateReported = dto.DateReported;
+        if (dto.DateReported.HasValue)
+        {
+            report.DateReported = dto.DateReported.Value;
+        }
+
+        if (dto.Description != null)
+        {
+            report.Description = dto.Description.Trim();
+        }
+
+        if (dto.Color != null)
+        {
+            report.Color = dto.Color.Trim();
+        }
         report.UpdatedAt = DateTime.UtcNow;
 
         if (dto.DeletedImageIds != null && dto.DeletedImageIds.Any())
