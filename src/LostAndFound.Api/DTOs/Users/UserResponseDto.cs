@@ -8,4 +8,6 @@ public class UserResponseDto
     public bool IsActive { get; set; }
     public DateTime Created { get; set; }
     public IList<string> Roles { get; set; } = new List<string>();
+    public int ReportsCount { get; set; }
+    public int ClaimsCount { get; set; }
 }

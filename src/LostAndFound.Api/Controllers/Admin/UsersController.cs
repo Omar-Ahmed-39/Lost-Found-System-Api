@@ -27,17 +27,26 @@ public class UsersController : BaseController
         var query = _userManager.Users.AsNoTracking();
         var totalRecords = await query.CountAsync();
 
-        var users = await query
+        var usersData = await query
             .OrderByDescending(u => u.Created)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
+            .Select(u => new
+            {
+                User = u,
+                ReportsCount = u.Reports.Count(),
+                ClaimsCount = u.Claims.Count()
+            })
             .ToListAsync();
 
         var responseList = new List<UserResponseDto>();
-        foreach (var user in users)
+        foreach (var item in usersData)
         {
-            var roles = await _userManager.GetRolesAsync(user);
-            responseList.Add(MapToResponse(user, roles));
+            var roles = await _userManager.GetRolesAsync(item.User);
+            var mapped = MapToResponse(item.User, roles);
+            mapped.ReportsCount = item.ReportsCount;
+            mapped.ClaimsCount = item.ClaimsCount;
+            responseList.Add(mapped);
         }
 
         return Paged((IEnumerable<UserResponseDto>)responseList, pageNumber, pageSize, totalRecords);
@@ -115,13 +124,13 @@ public class UsersController : BaseController
 
     [AuditLog("Toggled User Block Status")]
     [HttpPatch(ApiRoutes.Users.ToggleBlock)]
-    public async Task<IActionResult> ToggleBlockUser(int id, [FromQuery] bool block = true)
+    public async Task<IActionResult> ToggleBlockUser(int id)
     {
         var user = await _userManager.FindByIdAsync(id.ToString());
         if (user == null)
             return NotFound(ApiResponse<object>.Failure($"User with ID {id} not found."));
 
-        user.IsActive = !block;
+        user.IsActive = !user.IsActive;
         user.UpdatedAt = DateTime.UtcNow;
 
         var result = await _userManager.UpdateAsync(user);
@@ -129,8 +138,8 @@ public class UsersController : BaseController
             return Error(result.Errors.Select(e => e.Description).ToList());
 
         var roles = await _userManager.GetRolesAsync(user);
-        var status = block ? "blocked" : "unblocked";
-        return Success(MapToResponse(user, roles), $"User has been {status} successfully.");
+        var status = user.IsActive ? "unbanned" : "banned";
+        return Success(MapToResponse(user, roles), $"User {status} successfully.");
     }
 
     [AuditLog("Changed User Role")]

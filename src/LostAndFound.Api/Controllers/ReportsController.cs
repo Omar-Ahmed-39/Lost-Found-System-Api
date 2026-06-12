@@ -4,7 +4,6 @@ using LostAndFound.Core.Entities;
 using LostAndFound.Core.Enums;
 using LostAndFound.Core.Filters;
 using LostAndFound.Core.Interfaces;
-using LostAndFound.Infrastructure.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -88,10 +87,11 @@ public class ReportsController : BaseController
         {
             Id = report.Id,
             ItemName = report.ItemName,
-            Images = report.Attachments.Select(a => new LostAndFound.Api.DTOs.ItemReports.ImageDto
+            Images = report.Attachments.Select(a => new ImageDto
             {
                 Id = a.Id,
                 Path = a.FilePath
+
             }).ToList(),
 
             ReportType = report.ReportType.ToString(),
@@ -243,8 +243,14 @@ public class ReportsController : BaseController
         if (!categoryExists)
             return Error("Selected category does not exist.", 400);
 
-        if (report.UserId != GetUserId())
-            return Error("Unauthorized.", 403);
+        var currentUserId = GetUserId();
+        bool isAdminOrSuperAdmin = User.IsInRole(AppRoles.Admin) || User.IsInRole(AppRoles.SuperAdmin);
+        bool isReportOwner = report.UserId == currentUserId;
+
+        if (!isAdminOrSuperAdmin && !isReportOwner)
+        {
+            return StatusCode(403, ApiResponse<object>.Failure("You do not have permission to edit this report."));
+        }
 
         if (!Enum.IsDefined(typeof(enReportType), dto.ReportType))
             return Error("Invalid report type.", 400);
