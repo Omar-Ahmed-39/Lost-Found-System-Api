@@ -1,4 +1,4 @@
-﻿using LostAndFound.Core.Enums;
+using LostAndFound.Core.Enums;
 
 namespace LostAndFound.Api.DTOs.Handovers;
 
@@ -8,6 +8,7 @@ public class HandoverResponseDto
     public enIdType IdType { get; set; }
     public string IdNumber { get; set; } = string.Empty;
     public string ImagePath { get; set; } = string.Empty;
+    public string SignaturePath { get; set; } = string.Empty;
     public DateTime HandoverDate { get; set; }
     public string Notes { get; set; } = string.Empty;
     public string LocationName { get; set; } = string.Empty;

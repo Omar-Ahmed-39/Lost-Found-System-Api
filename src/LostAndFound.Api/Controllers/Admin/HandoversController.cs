@@ -12,21 +12,49 @@ namespace LostAndFound.Api.Controllers.Admin;
 public class HandoversController : BaseController
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IFileService _fileService;
 
-    public HandoversController(IUnitOfWork unitOfWork)
+    public HandoversController(IUnitOfWork unitOfWork, IFileService fileService)
     {
         _unitOfWork = unitOfWork;
+        _fileService = fileService;
     }
 
     [AuditLog("Created New Handover")]
     [HttpPost(ApiRoutes.Handovers.Create)]
-    public async Task<IActionResult> Create([FromBody] CreateHandoverDto dto)
+    public async Task<IActionResult> Create([FromForm] CreateHandoverDto dto)
     {
+        string imagePath = string.Empty;
+        string signaturePath = string.Empty;
+
+        if (dto.IdPhoto != null)
+        {
+            using var stream = dto.IdPhoto.OpenReadStream();
+            imagePath = await _fileService.UploadFileAsync(stream, dto.IdPhoto.FileName, "handovers/ids");
+        }
+
+        if (dto.SignatureImage != null)
+        {
+            using var stream = dto.SignatureImage.OpenReadStream();
+            signaturePath = await _fileService.UploadFileAsync(stream, dto.SignatureImage.FileName, "handovers/signatures");
+        }
+
+        if (dto.LocationId <= 0 || dto.ReceiverUserId <= 0)
+        {
+            var claim = await _unitOfWork.Claims.GetDetailsAsync(dto.ClaimId);
+            if (claim != null)
+            {
+                if (dto.LocationId <= 0) dto.LocationId = claim.Report?.LocationId ?? 0;
+                if (dto.ReceiverUserId <= 0) dto.ReceiverUserId = claim.UserId;
+            }
+        }
+
         var handover = new Handover
         {
             IdType = dto.IdType,
             IdNumber = dto.IdNumber,
-            ImagePath = dto.ImagePath,
+            ImagePath = imagePath,
+            SignaturePath = signaturePath,
             HandoverDate = dto.HandoverDate,
             Notes = dto.Notes,
             LocationId = dto.LocationId,
@@ -57,6 +85,7 @@ public class HandoversController : BaseController
             IdType = handover.IdType,
             IdNumber = handover.IdNumber,
             ImagePath = handover.ImagePath,
+            SignaturePath = handover.SignaturePath,
             HandoverDate = handover.HandoverDate,
             Notes = handover.Notes,
             LocationName = handover.Location.Name,
@@ -81,6 +110,7 @@ public class HandoversController : BaseController
             IdType = handover.IdType,
             IdNumber = handover.IdNumber,
             ImagePath = handover.ImagePath,
+            SignaturePath = handover.SignaturePath,
             HandoverDate = handover.HandoverDate,
             Notes = handover.Notes,
             LocationName = handover.Location.Name,
